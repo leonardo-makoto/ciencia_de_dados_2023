@@ -12,7 +12,7 @@ library(tidyverse)
 library(data.table)
 library(ggplot2)
 library(cowplot)
-
+library(class)
 db_1 <- Auto
 
 # 3a
@@ -35,64 +35,6 @@ str(db_2)
 # variáeis (e.g., draftsman display, boxplots). Divida os dados em conjunto de treinamento e de teste.
 
 plots <- list()
-# gerar gráfico de boxplot para a variável mpg
-# 
-# plots[[1]] <- ggplot(db_2, aes(x = as.factor(mpg1), y = mpg)) +
-#   geom_boxplot() +
-#   xlab("mpg1") +
-#   ylab("mpg") +
-#   theme_classic()
-# plots[[1]]
-# 
-# 
-# plots[[2]] <- ggplot(db_2, aes(x = as.factor(mpg1), y = cylinders)) +
-#   geom_boxplot() +
-#   xlab("mpg1") +
-#   ylab("cylinders") +
-#   theme_classic()
-# plots[[2]]
-# 
-# plots[[3]] <- ggplot(db_2, aes(x = as.factor(mpg1), y = displacement)) +
-#   geom_boxplot() +
-#   xlab("mpg1") +
-#   ylab("displacement") +
-#   theme_classic()
-# plots[[3]]
-# 
-# plots[[4]] <- ggplot(db_2, aes(x = as.factor(mpg1), y = horsepower)) +
-#   geom_boxplot() +
-#   xlab("mpg1") +
-#   ylab("horsepower") +
-#   theme_classic()
-# plots[[4]]
-# 
-# plots[[5]] <- ggplot(db_2, aes(x = as.factor(mpg1), y = weight)) +
-#   geom_boxplot() +
-#   xlab("mpg1") +
-#   ylab("weight") +
-#   theme_classic()
-# plots[[5]]
-# 
-# plots[[6]] <- ggplot(db_2, aes(x = as.factor(mpg1), y = acceleration)) +
-#   geom_boxplot() +
-#   xlab("mpg1") +
-#   ylab("acceleration") +
-#   theme_classic()
-# plots[[6]]
-# 
-# plots[[7]] <- ggplot(db_2, aes(x = as.factor(mpg1), y = year)) +
-#   geom_boxplot() +
-#   xlab("mpg1") +
-#   ylab("year") +
-#   theme_classic()
-# plots[[7]]
-# 
-# plots[[8]] <- ggplot(db_2, aes(x = as.factor(mpg1), y = origin)) +
-#   geom_boxplot() +
-#   xlab("mpg1") +
-#   ylab("origin") +
-#   theme_classic()
-# plots[[8]]
 
 
 # lista com os nomes das variáveis
@@ -126,7 +68,7 @@ plot_grid(plots[[1]], plots[[2]], plots[[3]],
           ncol = 3, align = "h")
 
 # setando o seed
-set.seed(1)
+set.seed(123)
 
 #use 70% of dataset as training set and 30% as test set
 sample <- sample(c(TRUE, FALSE), nrow(db_2), replace=TRUE, prob=c(0.7,0.3))
@@ -141,33 +83,111 @@ test   <- db_2[!sample, ]
 # o item (b). Qual a taxa de erros do conjunto teste?
 
 
+# para prever mpg1 com os preditores, vamos calcular o discriminante para todas 
+# combinações dos preditores numéricos: cylinders, displacement, horsepower,
+# weight, acceleration, year
 
+# não usamos a variável mpg, nem origin, nem name
+# mpg explica mpg1 já que uma é função da outra
+# origin não se mostrou muito correlacionada com mpg1 no boxplot
+# name é uma variável categórica
 
 
 library(MASS)
 
 # Lista de variáveis independentes
-vars <- names(db_2)[1:7]
+preditores_possiveis <- names(db_2)[2:7]
 
 # Todas as combinações possíveis de variáveis
-var_combinations <- unlist(lapply(seq_along(vars), function(x) combn(vars, x, simplify = FALSE)), recursive = FALSE)
+preditores_combinacoes <- unlist(
+  lapply(
+    seq_along(
+      preditores_possiveis),
+    function(x) combn(preditores_possiveis, x, simplify = FALSE)),
+  recursive = FALSE
+  )
 
 # Função para ajustar o modelo e calcular o erro de classificação
-fit_lda <- function(vars) {
-  formula <- as.formula(paste("mpg1 ~", paste(vars, collapse = "+")))
+fit_lda <- function(x) {
+  formula <- as.formula(paste("mpg1 ~", paste(x, collapse = "+")))
   lda_fit <- lda(formula, data = train)
   lda_pred <- predict(lda_fit, newdata = test)
   lda_error <- mean(lda_pred$class != test$mpg1)
-  return(list(vars = vars, lda_fit = lda_fit, lda_pred = lda_pred, lda_error = lda_error))
+  return(list(x = x, lda_fit = lda_fit, lda_pred = lda_pred, lda_error = lda_error))
 }
 
 # Aplicar a função em todas as combinações possíveis de variáveis
-lda_results <- lapply(var_combinations, fit_lda)
+lda_results <- lapply(preditores_combinacoes, fit_lda)
 
 # Selecionar o modelo com o menor erro de classificação
 best_lda <- lda_results[[which.min(sapply(lda_results, function(x) x$lda_error))]]
 
 # Imprimir o modelo selecionado e a matriz de confusão
 print(best_lda$lda_fit)
-table(best_lda$lda_pred$class, test$mpg1)
+matriz_confusao <- table(best_lda$lda_pred$class, test$mpg1)
+
+
+# calculando taxa de erro
+taxa_erro <- sum(matriz_confusao[row(matriz_confusao) != col(matriz_confusao)]) / sum(matriz_confusao)
+
+# imprimindo resultados
+cat("Variáveis preditoras selecionadas: ", paste(best_lda$x, collapse = ", "), "\n")
+cat("Taxa de erro: ", taxa_erro, "\n")
+
+
+
+# 3c
+# (d) Use KNN, com v´arios valores de K, e determine a taxa de erros do
+# conjunto teste. Qual valor de K ´e melhor nesse caso?
+
+
+# função para ajustar o modelo e calcular o erro de classificação
+fit_knn <- function(x, k) {
+  knn_pred <- knn(
+    as.data.frame(train[, unlist(x)]), 
+    as.data.frame(test[, unlist(x)]), 
+                  train$mpg1, k = k
+    )
+  knn_error <- mean(knn_pred != test$mpg1)
+  return(list(x = x, k = k, knn_pred = knn_pred, knn_error = knn_error))
+}
+
+# aplicar a função em todas as combinações possíveis de variáveis e valores de k
+
+
+knn_results <- lapply((preditores_combinacoes), function(x) {
+  lapply(seq(1, 11,1), function(k) {
+    fit_knn(x, k)
+
+  })
+})
+
+# selecionar o modelo com o menor erro de classificação
+
+
+k_menores_erros <- lapply(knn_results, function(x) which.min(sapply(x, function(y) y$knn_error)))
+previsores_menor_erro <- lapply(knn_results, function(x) min(sapply(x, function(y) y$knn_error))) %>% 
+  which.min()
+k_menor_erro <- k_menores_erros[[previsores_menor_erro]]
+
+best_knn_0 <- min(unlist(lapply(knn_results, function(x) min(sapply(x, function(y) y$knn_error)))))
+
+best_knn <- knn_results[[previsores_menor_erro]][[k_menor_erro]]$knn_error
+
+# imprimir os resultados
+cat("Variáveis preditoras selecionadas: ", paste(knn_results[[previsores_menor_erro]][[k_menor_erro]]$x, collapse = ", "), "\n")
+cat("Valor de k selecionado: ", k_menor_erro, "\n")
+cat("Taxa de erro: ", best_knn, "\n")
+
+
+# 3e 
+# Qual classificador vocˆe julga que ´e melhor?
+cat("Taxa de erro do melhor modelo de knn: ", best_knn, "\n", 
+    "com o valor de k selecionado: ", k_menor_erro, "\n",
+    "e com as variáveis preditoras selecionadas: ", paste(knn_results[[previsores_menor_erro]][[k_menor_erro]]$x, collapse = ", "), "\n") 
+cat("Taxa de erro do melhor modelo de an´alise discriminante linear de Fisher: ", 
+    taxa_erro, "\n",
+    "com as seguintes variáveis preditoras selecionadas: ", paste(best_lda$x, collapse = ", "), "\n")
+
+
 
