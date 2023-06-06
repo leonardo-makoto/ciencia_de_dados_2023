@@ -108,13 +108,14 @@ library(readxl)
 library(ipred)
 library(rpart)
 library(caret)
-set.seed(123)
+set.seed(1)
 
 # carregando a base de dados
 rehabcardio <- read_xls("rehabcardio.xls")
 str(rehabcardio %>%  select(Diabete,HDL,LDL,Triglic,Glicose,Peso))
 
-# note que Triglic estyá como chr e Diabete, que é a variável resposta (e deve estar em factor), está em num
+# note que Triglic está como chr e Diabete, que é a variável resposta 
+# (e deve estar em factor), está em num.
 # adicionalmente, há dados com NAs
 
 # subconjuntos em que as amostras têm todas as medidas completas
@@ -128,11 +129,11 @@ db_completas <- rehabcardio %>%
 
 # criando amostra de treino e teste (70% treino e 30% teste)
 
-amostra <- sample(c(T,F), nrow(db_completas), replace = TRUE , prob = c(0.7, 0.3))
+indice_teste <- createDataPartition(db_completas$Diabete, p = 0.7, list = FALSE)
+ 
 
-
-treino <- db_completas[amostra, ]
-teste <- db_completas[!amostra,]
+treino <- db_completas[indice_teste, ]
+teste <- db_completas[-indice_teste,]
 
 
 
@@ -152,7 +153,6 @@ rehabcardio_bagging_prev <- predict(
   rehabcardio_bagging,
   teste
   )
-confusionMatrix(factor(teste$Diabete, levels = c(1, 0)), rehabcardio_bagging_prev)
 
 
 # floresta aleatória
@@ -171,16 +171,29 @@ rehabcardio_rf_prev <- predict(
   rehabcardio_rf,
   teste
   )
+
+
+
+# comparando 
+confusionMatrix(factor(teste$Diabete, levels = c(1, 0)), rehabcardio_bagging_prev)
 confusionMatrix(factor(teste$Diabete, levels = c(1, 0)), rehabcardio_rf_prev)
 
 
 ```
+
+O modelo de floresta aleatória é o melhor classficador: a acurácia, a sensibilidade e a especificidade são maiores para floresta aleatória, como pode ser visto nos outputs da função confusionMatrix() dos dois modelos acima.
 
 
 # Questão 3
 
 Considere as variáveis Altura e Idade da Tabela 12.1 do Capítulo 12 (Análise de Agrupamentos):
 ```{r}
+
+library(cluster)
+library(fpc)
+# install.packages("factoextra")
+library(factoextra)
+set.seed(123)
 tabela_12_1 <- data.frame(
   individuo = c("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"),
   altura = c(180, 170, 165, 175, 190, 185, 160, 170, 175, 180, 185, 167),
@@ -233,11 +246,38 @@ Use o algoritmo K-médias, com $K = 3$ para obter os grupos para os mesmos dados
 
 ```{r}
 k_medias <-  kmeans(tabela_12_1 %>% select(altura_norm, idade_norm), 3)
-k_medias
-
-
-centroides <- k_medias$centers
 ```
+
+O gráfico abaixo mostra os agrupamentos dos indivíduos com base nas alturas e idades normalizadas, utilizando k-médias.
+Os 3 grupos finais definidos pelo método de k-médias resultaram em grupos similares aos grupos usando L1, do item b acima.
+
+```{r}
+# matriz_dissimilaridades <- daisy(tabela_12_1 %>% select(altura_norm, idade_norm) %>% 
+#         mutate(
+#           altura_norm = as.numeric(altura_norm),
+#           idade_norm = as.numeric(idade_norm)
+#                ))
+# matriz_dissimilaridades_2 <- matriz_dissimilaridades^2
+# silhouette_k_medias  <- silhouette(k_medias$cl, matriz_dissimilaridades_2)
+# plot(silhouette_k_medias)
+
+# clusplot(tabela_12_1 %>% select(altura_norm, idade_norm), k_medias$cluster, color=TRUE, shade=T,   lines=0)
+# plotcluster(tabela_12_1 %>% select(altura_norm, idade_norm), k_medias$cluster)
+
+fviz_cluster(
+  k_medias, 
+  data = tabela_12_1 %>% select(altura_norm, idade_norm)
+  )
+
+```
+
+Os centróides de cada grupos estão dados na tabela abaixo.
+```{r}
+
+
+(centroides <- k_medias$centers)
+```
+
 
 # Questão 4
 
