@@ -190,4 +190,4 @@ cat("Taxa de erro do melhor modelo de an´alise discriminante linear de Fisher: 
     "com as seguintes variáveis preditoras selecionadas: ", paste(best_lda$x, collapse = ", "), "\n")
 
 
-
+cat("O melhor modelo nesse caso é o KNN")

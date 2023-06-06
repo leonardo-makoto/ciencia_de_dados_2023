@@ -1,0 +1,480 @@
+---
+title: "Introdução à ciência dos dados - Lista 3"
+author: 
+- "Leonardo Lima - 14334311" 
+- "Leonardo Makoto - 7180679"
+date: "2023-05-22"
+output: pdf_document
+---
+
+# Questão 1
+
+Para o conjunto de dados Iris, use somente o comprimento de pétalas ($X_1$) e comprimento de sépalas ($X_2$) como preditores e a variável resposta $Y$ = espécie (Setosa, Versicolor, Virginica). Construa uma árvore para classificação. Escreva com detalhes as regiões no plano e faça o gráfico da árvore e das regiões, usando o pacote **tree**. Obtenha a taxa de erro de classificação.
+
+------------------------------------------------------------------------
+
+```{r message=FALSE, warning=FALSE}
+library(tree)
+library(tidyverse)
+
+# carregando a base de dados
+data("iris")
+
+# vamos criar criar a árvore de classificação
+
+mod.iris <- tree(Species ~ Petal.Length + Sepal.Length, data = iris)
+
+# vejamos os resultados da regressão
+summary(mod.iris)
+```
+
+De acordo com os resultados do modelo, a taxa de erro de classificação para o teste é aproximadamente 4,7%.
+
+Para visualizar a árvore, podemos fazer o seguinte:
+
+```{r}
+# criando a estrutura da árvore
+plot(mod.iris)
+
+# adicionaodo texto para a estrutura
+text(mod.iris, pretty = 0)
+```
+
+Assim como é possível observar no gráfico, a árvore possui nós demais, que podem ser removidos (note que para todos os valores de Sepal.Lenght em que $2,45<Petal.Lenght<4,75$ , a classificação prevista é versicolor, independente do valor de Sepal.Lenght).
+
+Vamos realizar o processo de poda da árvore através do método de validação cruzada para avaliar se há melhora:
+
+```{r}
+set.seed(123)
+# vamos determinar que a taxa de erro de classificação servirá como guia para
+# escolher o melhor parâmetro do modelo através da opção FUN
+
+cv.mod.iris <- cv.tree(mod.iris, FUN = prune.misclass)
+
+cv.mod.iris
+```
+
+Os resultados mostram que as árvores com 3 e 6 nós terminais são as que possuem a menor quantidade de erros (9). Dessa maneira, vamos selecionar a mais simples (3 nós) e criar a nova classificação com essa limitação.
+
+```{r}
+
+# nova classificação
+poda.iris <- prune.misclass(mod.iris, best = 3)
+
+# vejamos a taxa de erro e o gráfico dessa nova árvore
+summary(poda.iris)
+
+# gráfico
+plot(poda.iris)
+text(poda.iris, pretty = 0)
+```
+
+Comparativamente ao caso anterior, a taxa de erros dessa nova árvore é idêntica (4,7%), mas há um ganho significativo em termos de simplificação do critério de seleção.
+
+Vejamos o gráfico das regiões de classificação:
+
+```{r}
+# vamos criar um gráfico com as regiões de classificação dessa árvore
+ggplot(data = iris, aes(x = Petal.Length, y = Sepal.Length, color = Species)) +
+  geom_point() +
+  geom_vline(xintercept = c(2.45, 4.75)) +
+  annotate("text", x = 2, y = 7, label = "R1") +
+  annotate("text", x = 4, y = 7, label = "R2") +
+  annotate("text", x = 6, y = 7, label = "R3")
+  
+```
+
+Portanto, há 3 regiões de classificação para esta árvore:
+
+$$
+\begin{split}
+R_1 = \{ X: X_1 < 2,45 \}, \text{ o valor previsto para Species é Setosa} & \\
+R_2 = \{ X: 2,45 \leq X_1 < 4,75 \}, \text{ o valor previsto para Species é Versicolor} & \\
+R_3 = \{ X: X_1 \geq 4,75 \}, \text{ o valor previsto para Species é Virginica} & 
+\end{split}
+$$
+
+------------------------------------------------------------------------
+
+# Questão 2
+
+Considere o conjunto de dados **rehabcardio**, sendo preditores $X_1 = HDL$, $X_2 = LDL$, $X_3 = Trigl$, $X_4 = Glicose$ e $X_5 = Peso$ e resposta $Y$ = Diabetes (presente = 1, ausente = 0). Utilize um subconjunto em que as amostras têm todas as medidas completas. Construa árvores usando bagging e floresta aleatória. Usando a taxa de erro de classificação, escolha o melhor classificador.
+
+
+```{r message=FALSE, warning=FALSE}
+# carregando o pacote de floresta aletaória
+library(randomForest)
+library(readxl)
+library(ipred)
+library(rpart)
+library(caret)
+set.seed(123)
+
+# carregando a base de dados
+rehabcardio <- read_xls("rehabcardio.xls")
+str(rehabcardio %>%  select(Diabete,HDL,LDL,Triglic,Glicose,Peso))
+
+# note que Triglic estyá como chr e Diabete, que é a variável resposta (e deve estar em factor), está em num
+# adicionalmente, há dados com NAs
+
+# subconjuntos em que as amostras têm todas as medidas completas
+
+db_completas <- rehabcardio %>% 
+  select(Diabete,HDL,LDL,Triglic,Glicose,Peso) %>% 
+  mutate(Diabete=factor(Diabete,levels = c(1,0)))%>% # transformando Diabete em fator
+  mutate(Triglic=as.numeric(Triglic)) %>%  # transformando Triglic em numeric
+  na.omit() # excluindo todos os Nas para medida completa
+ str(db_completas)
+
+# criando amostra de treino e teste (70% treino e 30% teste)
+
+amostra <- sample(c(T,F), nrow(db_completas), replace = TRUE , prob = c(0.7, 0.3))
+
+
+treino <- db_completas[amostra, ]
+teste <- db_completas[!amostra,]
+
+
+
+
+# vamos criar criar a árvore usando bagging e floresta aleatória
+# bagging
+
+rehabcardio_bagging <- ipred::bagging(
+  formula = Diabete ~ HDL + LDL + Triglic + Glicose + Peso,
+  data = treino,
+  nbagg = 500, 
+  control = rpart.control(minsplit = 20, cp = 0.015)
+
+)
+# previsões do bagging
+rehabcardio_bagging_prev <- predict(
+  rehabcardio_bagging,
+  teste
+  )
+confusionMatrix(factor(teste$Diabete, levels = c(1, 0)), rehabcardio_bagging_prev)
+
+
+# floresta aleatória
+
+rehabcardio_rf <-randomForest(
+  Diabete ~ HDL + LDL + Triglic + Glicose + Peso,
+  data = treino,
+  nbagg = 500, 
+  importance = TRUE,
+  mtry = 5
+)
+
+# previsões da floresta aleatória
+
+rehabcardio_rf_prev <- predict(
+  rehabcardio_rf,
+  teste
+  )
+confusionMatrix(factor(teste$Diabete, levels = c(1, 0)), rehabcardio_rf_prev)
+
+
+```
+
+
+# Questão 3
+
+Considere as variáveis Altura e Idade da Tabela 12.1 do Capítulo 12 (Análise de Agrupamentos):
+```{r}
+tabela_12_1 <- data.frame(
+  individuo = c("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"),
+  altura = c(180, 170, 165, 175, 190, 185, 160, 170, 175, 180, 185, 167),
+  peso = c(75, 70, 65, 72, 78, 78, 62, 65, 68, 78, 74, 64),
+  idade = c(30, 28, 20, 25, 28, 30, 28, 19, 27, 35, 35, 32),
+  sexo = c("M", "F", "F", "M", "M", "M", "F", "F", "M", "M", "M", "F"),
+  altura_padronizada = c(0.53, -0.57, -1.12, -0.02, 1.63, 1.08, -1.67, -0.57, -0.02, 0.53, 1.08, -0.90),
+  peso_padronizado = c(0.72, -0.13, -0.97, 0.21, 1.23, 1.23, -1.48, -0.97, -0.47, 1.23, 0.55, -1.14),
+  idade_padronizada = c(0.38, -0.02, -1.61, -0.61, -0.02, 0.38, -0.02, -1.81, -0.22, 1.38, 1.38, 0.78)
+)
+
+# Selecionando e normalizando as devidas variáveis
+tabela_12_1 <- tabela_12_1 %>% 
+
+  mutate(altura_norm =scale(altura)) %>% 
+  mutate(idade_norm = scale(idade)) %>% 
+  column_to_rownames(var="individuo") 
+
+ 
+```
+
+## item a
+
+Obtenha os agrupamentos usando o método hierárquico, até um ponto que você considere adequado, usando a distância Euclidiana e o método do centróide. Obtenha o dendrograma correspondente.
+
+------------------------------------------------------------------------
+```{r}
+dist_euclidiana <- dist(tabela_12_1 %>% select(altura_norm, idade_norm),method = "euclidean")
+metodo_centroide <- hclust(dist_euclidiana,method="centroid")
+
+plot(metodo_centroide)
+```
+
+## item b
+
+Refaça o item (a) usando a distância L1 (Manhattan).
+
+------------------------------------------------------------------------
+```{r}
+dist_manhattan <- dist(tabela_12_1 %>% select(altura_norm, idade_norm),method = "manhattan")
+metodo_centroide_manhattan <- hclust(dist_manhattan,method="centroid")
+
+plot(metodo_centroide_manhattan)
+```
+## item c
+
+Use o algoritmo K-médias, com $K = 3$ para obter os grupos para os mesmos dados. Comente o resultado. Qual é o centróide de cada grupo?
+
+------------------------------------------------------------------------
+
+```{r}
+k_medias <-  kmeans(tabela_12_1 %>% select(altura_norm, idade_norm), 3)
+k_medias
+
+
+centroides <- k_medias$centers
+```
+
+# Questão 4
+
+```{r message=FALSE, warning=FALSE}
+
+# Simulando os dados
+set.seed(123)
+
+# criando as preditoras
+x1 <- runif(500)-0.5
+x2 <- runif(500)-0.5
+
+# criando a variável y
+y <- 1* (x1^2 - x2^2 > 0)
+
+# substituindo o 0 por -1
+y <- ifelse(y == 0, -1, y)
+
+# transformando em base de dados
+base <- data.frame(x1,x2,y = as.factor(y))
+```
+
+## Item a
+
+Faça um gráfico das observações, com símbolos (ou cores) de acordo com cada classe.
+
+------------------------------------------------------------------------
+
+```{r}
+# vamos criar o gráfico das observações
+ggplot(aes(x = x1, y = x2, colour = y), data = base) +
+  geom_point()
+
+rm(x1,x2,y)
+```
+
+## item b
+
+Separe os dados em conjunto de treinamento e de teste. Obtenha o classificador de margem máxima, tendo X1 e X2 como preditores. Obtenha as previsões para o conjunto de teste e a acurácia do classificador.
+
+------------------------------------------------------------------------
+
+```{r}
+# carregando o pacote para realizar o svm
+set.seed(123)
+
+# vamos criar a amostra de treino com 80% das observações da base
+treino <- sample(500, 500*0.8, replace = FALSE)
+
+library(e1071)
+
+# vamos calibrar o modelo de margem máxima:
+
+svm_unif <- svm(y ~ x1 + x2, data = base[treino,],
+                type = "C-classification", kernel = "linear")
+
+# vejamos os resultados
+
+summary(svm_unif)
+
+```
+
+Vejamos agora as previsões para o conjunto de teste
+
+```{r}
+
+# previsões para o conjunto de teste
+svm_pred <- predict(svm_unif, base)[-treino]
+
+# vejamos a acurácia do classificador através da matriz de confusão:
+table(svm_pred, 
+      base$y[-treino])
+
+# a acurácia é: 49/100 = 49%
+```
+
+Como é possível perceber, o algorítmo classifica todos como 1. Vejamos o gráfico
+
+```{r}
+# gráfico
+plot(svm_unif, base[-treino,])
+```
+
+Os vetores de suporte são os x e a região em vermelho é a que classifica em 1. Como podemos ver, praticamente todas as observações são vetores de suporte e toda a região designa para 1, indicando que o modelo não é adequado. Os acertos são fruto do acaso.
+
+## item c
+
+Obtenha o classificador de margem flexível, tendo X1 e X2 com preditores. Obtenha as previsões para o conjunto de teste e a taxa de erros de classificação.
+
+------------------------------------------------------------------------
+
+```{r}
+
+# vamos encontrar o parâmetro gamma e custo para fazer usar a margem flexível:
+set.seed(123)
+
+tune <- tune.svm(y ~ x1 + x2, data = base[treino,],
+    cost = 2^(2:5), gamma = 2^(-2:2))
+
+# vendo os melhores parâmetros
+summary(tune)
+
+```
+
+Os melhores parâmetros são: custo = `r tune$best.parameters$cost` e gamma = `r tune$best.parameters$gamma`. Como pretendemos usar kernel linear, gamma é necessariamente 0,5. Vamos inserir no modelo de margem flexível o valor do custo encontrado:
+
+```{r}
+# Modelo de margem flexível:
+set.seed(123)
+
+svm_unif_flex <- svm(y ~ x1 + x2, data = base[treino,],
+                     kernel = "linear", cost = 16)
+
+# vejamos os resultados
+
+summary(svm_unif_flex)
+```
+
+Vejamos a acurácia do classificador:
+
+```{r}
+# previsões para o conjunto de teste
+svm_pred_flex <- predict(svm_unif_flex, base)[-treino]
+
+# vejamos a acurácia do classificador através da matriz de confusão:
+table(svm_pred_flex, 
+      base$y[-treino])
+
+# a acurácia é: 49/100 = 49%
+```
+
+Novamente, o classificador atribui todos ao valor 1. A taxa de erros de classificação será 1 - acurácia. Ou seja, 51%.
+
+## item d
+
+Obtenha o classificador de margem não linear, usando um kernel apropriado. Calcule a taxa de erros de classificação.
+
+------------------------------------------------------------------------
+
+Façamos a estimação usando o kernel do tipo polinômio:
+
+```{r}
+# vamos encontrar o grau do polinômio e o parâmetro custo para usar o classificador de margem não linear, levando em consideração de 1 a 4 polinômios e um custo que varia de 4 a 64:
+set.seed(123)
+tune2 <- tune.svm(y ~ x1 + x2, data = base[treino,],
+    cost = 2^(2:8),
+    kernel = "polynomial", degree = 1:4)
+
+# vendo os melhores parâmetros
+summary(tune2)
+
+```
+
+Os melhores parâmetros são: custo = `r tune2$best.parameters$cost` e grau do polinômio= `r tune2$best.parameters$degree`. Lembrando que o parâmetro gamma não é utilizado para o kernel polinomial, apenas para o radial.
+
+```{r}
+set.seed(123)
+
+# Modelo de margem não linear:
+svm_unif_n_linear <- svm(y ~ x1 + x2, data = base[treino,],
+                     kernel = "polynomial",type = "C-classification",
+                     degree = 2, cost = 16, scale = F)
+
+# vejamos os resultados
+summary(svm_unif_n_linear)
+```
+
+Os resultados mostram que há 196 vetores de suporte. Vamos plotar o gráfico com o modelo vs observações de teste para ver a performance:
+
+```{r}
+plot(svm_unif_n_linear, base[-treino,] )
+```
+
+Pelo gráfico, podemos observar que o método é mais adequado para a classificação. Vejamos os resultados de acurácia e taxa de erros:
+
+```{r}
+# previsões para o conjunto de teste
+svm_pred_n_linear <- predict(svm_unif_n_linear, base)[-treino]
+
+# vejamos a acurácia do classificador através da matriz de confusão:
+table(svm_pred_n_linear, 
+      base$y[-treino])
+
+
+```
+
+A acurácia é: 49+43/100 = 92%. Já a taxa de erros é 1 - acurácia: 8%.
+
+Vamos fazer os mesmos testes usando kernel radial:
+
+```{r}
+set.seed(123)
+
+tune3 <- tune.svm(y ~ x1 + x2, data = base[treino,],
+    cost = 2^(2:8),
+    kernel = "radial", gamma = 2^(1:6))
+
+# vendo os melhores parâmetros
+summary(tune3)
+# Modelo de margem não linear:
+
+svm_unif_radial <- svm(y ~ x1 + x2, data = base[treino,],
+                     kernel = "radial",type = "C-classification",
+                     gamma = 16, cost = 4, scale = F)
+
+# vejamos os resultados
+
+summary(svm_unif_radial)
+```
+
+Vamos ver como fica o gráfico do radial:
+
+```{r}
+plot(svm_unif_radial, base[-treino,] )
+```
+
+A figura mostra uma classificação menos adequada do que no caso do polinômio - pontos vermelhos sobre a área amarela são mais frequentes. Vamos ver a taxa de erros do modelo:
+
+```{r}
+# previsões para o conjunto de teste
+svm_pred_radial <- predict(svm_unif_radial, base)[-treino]
+
+# vejamos a acurácia do classificador através da matriz de confusão:
+table(svm_pred_radial, 
+      base$y[-treino])
+```
+
+Nesse caso, a taxa de erro e acurácia de ambos os modelos são iguais. Olhando a acurácia balanceada, o modelo polinomial apresenta acurácia de 92,1%, enquanto o radial de aprox. 92%. Sendo assim, iremos usar o modelo polinomial como referência para o item e.
+
+## item e
+
+Compare os dois classificadores.
+
+------------------------------------------------------------------------
+
+Assim como apresentado nos itens anteriores, a tentativa de estimar um modelo linear em um cenário cujas classes apresentem uma fronteira de decisão não linear leva a resultados consideravelmente ruins. No caso em questão, os modelos lineares previam que todas as observações pertenciam apenas a uma classe, y = 1, independentemente se a margem linear considerada era flexível ou não.
+
+Como consequência da aplicação do modelo inadequado, a taxa de erros dos dois modelos lineares era próxima de 50%, i.e., resultados próximos a probabilidade a priori de cada classe.
+
+Ao estimar o modelo de margem não linear, adequado para o padrão dos dados, a acurácia aumentou consideravelmente e a taxa de erros caiu para aproximadamente 8%. Isso é reflexo da melhor adequação do modelo ao formato dos dados, que agora passa a ter as duas classificações na previsão.

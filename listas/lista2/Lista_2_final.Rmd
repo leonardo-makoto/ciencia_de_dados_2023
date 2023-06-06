@@ -1,0 +1,498 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# MAE 5905: Introdução à Ciência de Dados
+
+# Lista 2. Primeiro Semestre de 2023. Entregar 12/05/2023.
+
+Alunos:
+
+1.  Leonardo Makoto - 7180679
+
+2.  Leonardo Lima - 14334311
+
+# Preliminares
+
+```{r preliminares, echo=TRUE, message=FALSE, warning=FALSE, results=FALSE}
+
+
+library(ISLR2) #pacote dos dados do livro ISLR
+library(tidyverse) #pacote de manipulação de dados
+library(leaps) 
+library(glmnet)
+
+set.seed(9845)
+
+```
+
+# Exerício 1
+
+## item 1a
+
+(a) Use a função rnorm() (simula valores de uma distribuiçãao normal) do R para gerar um preditor X com n = 100 observações, bem como um erro também de comprimento 100.
+
+```{r 1a}
+# criando a variável x
+x <- rnorm(100)
+
+# criando o termo de erro
+e <- rnorm(100)
+```
+
+## item 1b
+
+(b) Simule um vetor de resposta Y, de comprimento n = 100, de acordo com o modelo $Y = \beta_0 + \beta_1X + \beta_2X^2 + \beta_3X^3 + \varepsilon$, em que os parâmetros $\beta_i$ são constantes de sua escolha.
+
+```{r 1b}
+# criando Y
+y <- 5 + 3*x - 0.5*x^2 + x^3 + e
+
+```
+
+## item 1c
+
+(c) Considere o modelo de (b), agora com os $\beta_i$ e $\varepsilon$ desconhecidos, $X$ como em (a) e $Y$ como em (b). Qual seria o melhor modelo usando $R^2$ ajustado e BIC?
+
+```{r 1c}
+
+# criando o modelo simples
+mod_simples <- lm(y ~ x)
+
+# criando o modelo quadrático
+mod_quad <- lm(y ~ poly(x,2))
+
+# criando o modelo cúbico
+mod_cubico <- lm(y ~ poly(x,3))
+
+# modelo de ordem 4
+mod_4 <- lm(y ~ poly(x,4))
+
+# comparando o R2 de cada modelo
+summary(mod_simples)$adj.r.squared
+summary(mod_quad)$adj.r.squared 
+summary(mod_cubico)$adj.r.squared
+summary(mod_4)$adj.r.squared
+```
+
+```{r 1c_2, echo = FALSE}
+# comparando os BICs
+cat("BIC do modelo simples:", BIC(mod_simples), "\n")
+cat("BIC do modelo quadrático:", BIC(mod_quad), "\n")
+
+cat("BIC do modelo cubico:", BIC(mod_cubico), "\n")
+cat("BIC do modelo de ordem 4:", BIC(mod_4), "\n")
+```
+
+Com base nas métricas $R^2$ e BIC, o melhor modelo considerando polinômios de ordem até 4 é o modelo cúbico, dado que o $R^2$ ajustado é o maior e BIC é o menor, como pode ser observado abaixo.
+
+## item 1d
+
+(d) Para o modelo como em (c), obtenha os estimadores ridge e lasso. Use VC para selecionar o valor ótimo de $\lambda$.
+
+```{r 1d}
+# vamos criar a base de x e y
+base <- data.frame(x,y)
+
+# Vamos criar a nossa matriz X de explicativas
+X <- model.matrix(y ~ poly(x,3), base)[,-1] 
+
+# Ridge
+reg_ridge <- cv.glmnet(X,y, alpha = 0)
+
+```
+
+```{r 1d_2, echo=TRUE}
+
+# vamos ver os coeficientes e o valor de lambda
+
+coef(reg_ridge, s = "lambda.min")
+
+# valor ótimo de lambda para o Ridge:
+reg_ridge$lambda.min
+
+# Lasso
+reg_lasso <- cv.glmnet(X,y, alpha = 1)
+
+# vamos ver os coeficientes e o valor de lambda
+coef(reg_lasso, s = "lambda.min")
+
+# Valor ótimo de lambda para o Lasso
+reg_lasso$lambda.min
+
+```
+
+# Exercício 2
+
+2.  Considere o conjunto de dados Weekly do pacote ISLR, contendo 1.089 retornos semanais de ações de 1990 a 2010.
+
+```{r preliminares2, , warning=FALSE, include=FALSE}
+
+# removendo os dados do exercício anterior
+rm(list = ls())
+
+# carrengando o pacote sugerido da questão:
+library(astsa)
+
+
+# carrengando a base de dados do exercício
+data(Weekly)
+```
+
+## item 2a
+
+(a) Calcule algumas medidas numéricas dos dados, como média, variância, quantis etc. Faça alguns gráficos para sumarizar os dados (use, por exemplo, o pacote astsa).
+
+```{r 2a}
+
+## criando as estatísticas descritivas ----
+
+descritivas <- Weekly %>%
+  select(-Direction) %>%
+  pivot_longer(cols = 1:ncol(.), names_to = 'variavel') %>%
+  group_by(variavel) %>%
+  summarise(media = mean(value),
+            variancia = var(value),
+            desvio_p = sd(value),
+            mediana = median(value),
+            prim_quartil = quantile(value, probs = 0.25),
+            terc_quartil = quantile(value,probs = 0.75),
+            minimo = min(value),
+            maximo = max(value))
+
+descritivas
+
+```
+
+Boxplot
+
+```{r 2a_2, echo=FALSE}
+
+## gráficos das estatísticas ----
+
+week_long <- Weekly %>%
+  select(-Direction) %>%
+  pivot_longer(cols = 1:ncol(.), names_to = 'variavel')
+
+# boxplot
+
+boxplot(value ~ variavel, data = week_long %>%
+          filter(variavel != "Year"))
+```
+
+Histograma
+
+```{r 2a_3, echo=FALSE}
+# histograma
+ggplot(week_long %>%
+         filter(variavel != "Year"), aes(x = value)) + 
+  geom_histogram() +
+  facet_grid(variavel ~ ., scales = "free")
+
+
+```
+
+## item 2b
+
+(b) Use o conjunto todo de dados e ajuste uma regressão logística, com Direction (up and down) como variável resposta e variável defasada Lag1 como preditora. Comente os resultados.
+
+```{r 2b}
+
+# regressão logística
+reg_log_1 <- glm(Direction ~ Lag1, data = Weekly, family = binomial) # 1 para Up e 0 para down
+
+# sumário dos resultados
+summary(reg_log_1)
+
+```
+
+Resultados mostram que Lag1 não é significativo para explicar a direção dos retornos das ações.
+
+## item 2c
+
+(c) repita (b), agora tendo como preditores Lag1 e Lag2. Comente.
+
+```{r 2c}
+
+## c ----
+
+# regressão logística para 2 lags
+reg_log_2 <- glm(Direction ~ Lag1 + Lag2, data = Weekly, family = binomial) # 1 para Up e 0 para down
+
+# sumário dos resultados
+summary(reg_log_2)
+
+
+```
+
+No caso com 2 Lags, a estatística Lag2 é significativa para explicar a direção dos retornos das ações na semana. O coeficiente demonstra que há uma relação positiva entre o percentual de retorno das duas semanas anteriores com a semana atual. Mais especificamente, cada percentual a mais de 2 semanas atrás aumenta em 1,06 a chance da direção das ações ser Up esta semana.
+
+## item 2d
+
+(d) Ajuste uma regressão logística usando como período de treinamento os dados de 1990 a 2008, com Lag2 como preditor. Obtenha a matriz de confusão e a taxa de erro de classificação para o período de teste, 2009-2010.
+
+```{r 2d}
+
+# separando a base de treino
+Weekly_train <- Weekly %>%
+  filter(Year<=2008)
+
+# separando a base de teste
+Weekly_teste <- Weekly %>%
+  filter(Year > 2008)
+
+# calibrando a função com base na amostra de treino
+fit.log <- glm(Direction ~ Lag2, family = binomial, data = Weekly_train)
+
+# vamos fazer a previsão com a amostra de teste
+log.probs <- predict(fit.log, Weekly_teste, type = "response") 
+
+# vamos supor que se prob > 0.5, classificamos como Up
+log.previsao <- rep("Down", 104)
+
+log.previsao[log.probs > 0.5] <- "Up"
+```
+
+```{r 2d_2, echo = FALSE}
+cat("Criando a tabela de confusão:")
+table(log.previsao, Weekly_teste$Direction)
+cat("A taxa de erro de classificação será a soma das classificações erradas sobre total:",
+    mean(log.previsao != Weekly_teste$Direction))
+
+```
+
+## item 2e
+
+(e) repita (d) usando KNN, com K=1.
+
+```{r 2e}
+
+
+## e ----
+
+# carregando o pacote class para realizar KNN
+library(class)
+
+# realizando a previsão
+
+# como os dados precisam ser imputados em matriz, precisarei converter para matrix as variáveis
+knn.previsao <- knn(as.matrix(Weekly_train$Lag2), 
+                    as.matrix(Weekly_teste$Lag2), 
+                    Weekly_train$Direction, k = 1)
+```
+
+```{r 2e_2, echo = FALSE}
+
+print("Matriz de confusão para KNN:")
+table(knn.previsao, Weekly_teste$Direction)
+
+print("calculando a taxa de erro para knn:")
+mean(knn.previsao != Weekly_teste$Direction) # 50%
+
+```
+
+## item 2f
+
+(f) Qual método fornece os melhores resultados?
+
+Considerando a taxa de erro de classificação como métrica de seleção, a regressão logística fornece os resultados mais precisos.
+
+# Exercício 3.
+
+3.  Considere o conjunto de dados Auto do pacote ISLR.
+
+```{r preliminares3, , warning=FALSE, include=FALSE}
+
+
+library(tidyverse)
+library(data.table)
+
+library(ggplot2)
+library(cowplot)
+library(class)
+library(MASS)
+```
+
+```{r prelimiar4}
+library(ISLR)
+set.seed(123)
+```
+
+## item 3a
+
+(a) Crie uma variável binária, mpg1, que é igual a 1 se mpg for maior que sua mediana, e mpg1 igual a zero, se mpg for menor que sua mediana. (Use a função data.frame () para criar um conjunto de dados contendo mpg1 e as outras variáveis do conjunto Auto).
+
+```{r 3a}
+db_1 <- Auto
+db_2 <- db_1 %>% 
+  mutate(
+    mpg1 = case_when(
+      mpg > median(mpg) ~ 1,
+      mpg < median(mpg) ~ 0
+      )
+    )
+
+```
+
+## item 3b
+
+(b) Faça gráficos para investigar a associação entre mpg1 e as outras variáveis (e.g., draftsman display, boxplots). Divida os dados em conjunto de treinamento e de teste.
+
+```{r 3b, echo=FALSE}
+
+plots <- list()
+# lista com os nomes das variáveis
+var_names <- c("mpg", "cylinders",
+               "displacement", "horsepower", "weight", 
+               "acceleration", "year", "origin")
+
+# inicialize uma lista vazia para armazenar os plots
+plots <- list()
+
+# loop através dos nomes das variáveis
+for (i in 1:length(var_names)) {
+  # criar o plot usando ggplot
+  plot <- ggplot(db_2, aes(x = as.factor(mpg1), y = .data[[var_names[i]]])) +
+    geom_boxplot() +
+    xlab("mpg1") +
+    ylab(var_names[i]) +
+    theme_classic()
+  
+  # adicionar o plot à lista
+  plots[[i]] <- plot
+}
+
+# exibir os plots
+# for (i in 1:length(plots)) {
+#   print(plots[[i]])
+# }
+
+# exibir todos os gráficos no formato draftsman display
+plot_grid(plots[[1]], plots[[2]], plots[[3]],
+          plots[[4]], plots[[5]], plots[[6]],
+          plots[[7]], plots[[8]],
+          ncol = 3, align = "h")
+```
+
+```{r}
+# Dividindo os dados em conjunto de treinamento e teste
+sample <- sample(c(TRUE, FALSE), nrow(db_2), replace=TRUE, prob=c(0.7,0.3))
+train  <- db_2[sample, ]
+test   <- db_2[!sample, ]
+```
+
+## item 3c
+
+(c) Use análise discriminante linear de Fisher para prever mpg1 usando os preditores que você acha que sejam mais associadas com ela, usando o item (b). Qual a taxa de erros do conjunto teste?
+
+Para prever mpg1 com os preditores, vamos calcular o discriminante para todas combinações dos preditores numéricos: cylinders, displacement, horsepower, weight, acceleration, year.
+
+Não usamos a variável mpg, nem origin, nem name: mpg explica mpg1 já que uma é função da outra; origin não se mostrou muito correlacionada com mpg1 no boxplot; e name é uma variável categórica.
+
+```{r 3c}
+
+
+# Lista de variáveis independentes
+preditores_possiveis <- names(db_2)[2:7]
+
+# Todas as combinações possíveis de variáveis
+preditores_combinacoes <- unlist(
+  lapply(
+    seq_along(
+      preditores_possiveis),
+    function(x) combn(preditores_possiveis, x, simplify = FALSE)),
+  recursive = FALSE
+  )
+
+# Função para ajustar o modelo e calcular o erro de classificação
+fit_lda <- function(x) {
+  formula <- as.formula(paste("mpg1 ~", paste(x, collapse = "+")))
+  lda_fit <- lda(formula, data = train)
+  lda_pred <- predict(lda_fit, newdata = test)
+  lda_error <- mean(lda_pred$class != test$mpg1)
+  return(list(x = x, lda_fit = lda_fit, lda_pred = lda_pred, lda_error = lda_error))
+}
+
+# Aplicar a função em todas as combinações possíveis de variáveis
+lda_results <- lapply(preditores_combinacoes, fit_lda)
+
+# Selecionar o modelo com o menor erro de classificação
+best_lda <- lda_results[[which.min(sapply(lda_results, function(x) x$lda_error))]]
+
+# Imprimir o modelo selecionado e a matriz de confusão
+print(best_lda$lda_fit)
+matriz_confusao <- table(best_lda$lda_pred$class, test$mpg1)
+
+
+# calculando taxa de erro
+taxa_erro <- sum(matriz_confusao[row(matriz_confusao) != col(matriz_confusao)]) / sum(matriz_confusao)
+
+```
+
+Variáveis preditoras selecionadas: `r best_lda$x`.
+
+Taxa de erro: `r taxa_erro`.
+
+## item 3d
+
+(d) Use KNN, com vários valores de K, e determine a taxa de erros do conjunto teste. Qual valor de K é melhor nesse caso?
+
+```{r 3d}
+
+# função para ajustar o modelo e calcular o erro de classificação
+fit_knn <- function(x, k) {
+  knn_pred <- knn(
+    as.data.frame(train[, unlist(x)]), 
+    as.data.frame(test[, unlist(x)]), 
+                  train$mpg1, k = k
+    )
+  knn_error <- mean(knn_pred != test$mpg1)
+  return(list(x = x, k = k, knn_pred = knn_pred, knn_error = knn_error))
+}
+
+# aplicar a função em todas as combinações possíveis de variáveis e valores de k
+
+
+knn_results <- lapply((preditores_combinacoes), function(x) {
+  lapply(seq(1, 11,1), function(k) {
+    fit_knn(x, k)
+
+  })
+})
+
+# selecionar o modelo com o menor erro de classificação
+
+
+k_menores_erros <- lapply(knn_results, function(x) which.min(sapply(x, function(y) y$knn_error)))
+
+previsores_menor_erro <- lapply(knn_results, 
+                                function(x) min(sapply(x, function(y) y$knn_error))) %>% 
+  which.min()
+
+k_menor_erro <- k_menores_erros[[previsores_menor_erro]]
+
+best_knn_0 <- min(unlist(lapply(knn_results, 
+                                function(x) min(sapply(x, function(y) y$knn_error)))))
+
+best_knn <- knn_results[[previsores_menor_erro]][[k_menor_erro]]$knn_error
+
+knn_pred_selecionadas <- knn_results[[previsores_menor_erro]][[k_menor_erro]]$x
+
+fischer_pred_selecionadas <- best_lda$x
+```
+
+## item 3e
+
+(e) Qual classificador você julga que é melhor?
+
+A Taxa de erro do melhor modelo de knn: `r best_knn`, com o valor de k selecionado: `r k_menor_erro` e com as variáveis preditoras selecionadas: `r knn_pred_selecionadas` .
+
+A Taxa de erro do melhor modelo de an´alise discriminante linear de Fisher: `r taxa_erro`, com as seguintes variáveis preditoras selecionadas: `r fischer_pred_selecionadas`.
+
+O melhor modelo é o knn, com $k=1$ usando a variável cylinder.
