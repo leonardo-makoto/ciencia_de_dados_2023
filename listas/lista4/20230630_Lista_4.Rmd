@@ -1,0 +1,24 @@
+---
+title: "MAE 5905: Introdução à ciência dos dados - Lista 4"
+author: 
+- "Leonardo Lima - 14334311" 
+- "Leonardo Makoto - 7180679"
+date: "2023-06-30"
+output: pdf_document
+---
+
+# Questão 1
+
+Determine as componentes principais para o conjunto de dados iris disponível por meio do comando `data(iris)` no pacote R.
+
+# Questão 2
+
+Realize análise fatorial para os dados do problema anterior.
+
+# Questão 3
+
+Obtenha as componentes independentes para os dados do Problema 1.
+
+# Questão 4
+
+Considere o conjunto de dados Boston do pacote ISLR, contendo 506 amostras e 14 variáveis. Escolha variáveis que você acha que são importantes para descrever os dados. Faça uma análise de CP e uma análise fatorial e tente interpretar as componentes e os fatores.
