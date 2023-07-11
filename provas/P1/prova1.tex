@@ -1,0 +1,856 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same} % disable monospaced font for URLs
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\author{}
+\date{\vspace{-2.5em}}
+
+\begin{document}
+
+\hypertarget{mae-5905-introduuxe7uxe3o-uxe0-ciuxeancia-de-dados}{%
+\section{MAE 5905: Introdução à Ciência de
+Dados}\label{mae-5905-introduuxe7uxe3o-uxe0-ciuxeancia-de-dados}}
+
+\hypertarget{prova-1.-primeiro-semestre-de-2023.-entregar-19052023.}{%
+\subsection{Prova 1. Primeiro Semestre de 2023. Entregar
+19/05/2023.}\label{prova-1.-primeiro-semestre-de-2023.-entregar-19052023.}}
+
+Aluno: Leonardo Makoto Kawahara - 7180679
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{1}\NormalTok{)}
+\FunctionTok{library}\NormalTok{(tidyverse)}
+\FunctionTok{library}\NormalTok{(MASS)}
+\FunctionTok{library}\NormalTok{(ISLR)}
+\FunctionTok{library}\NormalTok{(caret)}
+\FunctionTok{library}\NormalTok{(glmnet)}
+\FunctionTok{library}\NormalTok{(ggplot2)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{exercuxedcio-1}{%
+\section{Exercício 1}\label{exercuxedcio-1}}
+
+\hypertarget{item-1a}{%
+\subsection{Item 1a}\label{item-1a}}
+
+Considere o caso de duas populações exponenciais, uma com média 1 e
+outra com média 0,5. Supondo \(\pi_1\) = \(\pi_2\), encontre o
+classificador de Bayes. Quais são as probabilidades de classificação
+incorreta? Construa um gráfico, mostrando a fronteira de decisão e as
+regiões de classificação em cada população. Generalize para o caso das
+médias serem \(\alpha > 0\) e \(\beta > 0\), respectivamente.
+
+\hypertarget{resposta}{%
+\subsubsection{Resposta:}\label{resposta}}
+
+Sejam \(X_1\) e \(X_2\) variáveis aleatórias com média 1 e média 0,5,
+respectivamente. Temos que \begin{equation}
+f(x_1;\lambda_1)=
+\begin{cases}
+\lambda_1 e^{-\lambda_1 x}, & \text{se}\ x_1 \geq 0 \\
+0, & \text{caso contrário}
+\end{cases}
+\\
+f(x_2;\lambda_2)=
+\begin{cases}
+\lambda_2 e^{-\lambda_2 x}, & \text{se}\ x_2 \geq 0 \\
+0, & \text{caso contrário}
+\end{cases}
+\end{equation}
+
+Como a \(E(X_1) = 1\) e \(E(X_2) = 0,1\), temos que \(\lambda_1 = 1\) e
+\(\lambda_2 = 2\)
+
+A probabilidade de classifição incorreta é dadao por: \begin{equation}
+P(C_k | C_j, R) = \int_{\chi_k} f_j(x) dx
+\end{equation}
+
+Como temos duas classes, para elementos com valor das variáveis
+preditoras igual a x devem ser classicada em \(C_1\) se
+
+\begin{equation}
+\frac{f_1(x)}{f_2(x)} \geq \frac{\pi_2}{\pi_1} = \frac{0,5}{0,5} = 1
+\end{equation} e em \(C_2\), caso contrário.
+
+Isto é, \begin{equation}
+\frac{e^{-x}}{2e} \geq 1 \longrightarrow
+e^x \geq 2 \longrightarrow
+x \geq log2
+\end{equation}
+
+Logo, temos que, \begin{equation}
+\chi_2= [0; log2] \\
+\chi_1 = [log2;\infty] \\
+
+\end{equation} Pela formula de probabilidade de classificação incorreta
+\begin{equation}
+P(C_1 | C_2; R) = \int^\infty_{log2}2e^{-2x}dx = 0.25\\
+P(C_2 | C_1; R) = \int^{log2}_{0}e^{-x}dx = -e^{-log2} - (-e^0 ) = \frac{1}{2} \\
+
+\end{equation}
+
+Criando o gráfico de fronteiras
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Gerando os dados de exemplo}
+
+\CommentTok{\# Criando o gráfico}
+\FunctionTok{ggplot}\NormalTok{() }\SpecialCharTok{+}
+
+  \FunctionTok{geom\_vline}\NormalTok{(}\AttributeTok{xintercept =} \FunctionTok{log}\NormalTok{(}\DecValTok{2}\NormalTok{), }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_text}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =} \DecValTok{2}\NormalTok{, }\AttributeTok{y =} \FloatTok{0.5}\NormalTok{, }\AttributeTok{label =} \StringTok{"Classe 1"}\NormalTok{), }\AttributeTok{hjust =} \DecValTok{0}\NormalTok{, }\AttributeTok{vjust =} \DecValTok{0}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_text}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =} \DecValTok{0}\NormalTok{, }\AttributeTok{y =} \FloatTok{0.5}\NormalTok{, }\AttributeTok{label =} \StringTok{"Classe 2"}\NormalTok{), }\AttributeTok{hjust =} \DecValTok{1}\NormalTok{, }\AttributeTok{vjust =} \DecValTok{0}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{x =} \StringTok{"X"}\NormalTok{, }\AttributeTok{y =} \StringTok{"Y"}\NormalTok{, }\AttributeTok{title =} \StringTok{"Fronteira de Decisão e Origem"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{xlim}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{2}\NormalTok{, }\DecValTok{5}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{prova1_files/figure-latex/unnamed-chunk-1-1.pdf}
+
+Generalizando, temos que \begin{equation}
+f(x_1;\lambda_1 = \frac{1}{\alpha})=
+\begin{cases}
+\frac{1}{\alpha} e^{-\frac{1}{\alpha} x}, & \text{se}\ x_1 \geq 0 \\
+0, & \text{caso contrário}
+\end{cases}
+\\
+f(x_2;\lambda_2 = \frac{1}{\beta})=
+\begin{cases}
+\frac{1}{\beta}e^{-\frac{1}{\beta} x}, & \text{se}\ x_2 \geq 0 \\
+0, & \text{caso contrário}
+\end{cases}
+\end{equation}
+
+Como temos duas classes, para elementos com valor das variáveis
+preditoras igual a x devem ser classicada em \(C_1\) se
+
+\begin{equation}
+\frac{f_1(x)}{f_2(x)} \geq \frac{\pi_2}{\pi_1} = \frac{0,5}{0,5} = 1
+\end{equation}
+
+Isto é, \begin{equation}
+\frac{\frac{1}{\alpha} e^{-\frac{1}{\alpha} x}}{\frac{1}{\beta}e^{-\frac{1}{\beta} x}} \geq 1 \longrightarrow
+e^{x(\frac{\alpha - \beta}{\alpha\beta})} \geq \frac{\alpha}{\beta} \longrightarrow
+x \geq log(\frac{\alpha}{\beta})\frac{\alpha \beta}{\alpha-\beta}
+\end{equation}
+
+Então, temos que \begin{equation}
+\chi_1 = [log(\frac{\alpha}{\beta})\frac{\alpha \beta}{\alpha-\beta}; \infty] \\
+\chi_2 = [0;log(\frac{\alpha}{\beta})\frac{\alpha \beta}{\alpha-\beta}] \\
+
+\end{equation}
+
+Pela formula de probabilidade de classificação incorreta
+\begin{equation}
+P(C_1 | C_2; R) = \int^\infty_{log(\frac{\alpha}{\beta})\frac{\alpha \beta}{\alpha-\beta}}\frac{1}{\beta}e^{-\frac{1}{\beta} x}dx \\
+P(C_2 | C_1; R) = \int^{log(\frac{\alpha}{\beta})\frac{\alpha \beta}{\alpha-\beta}}_{0}\frac{1}{\alpha} e^{-\frac{1}{\alpha} x}dx  \\
+
+
+\end{equation}
+
+\hypertarget{item-1b}{%
+\subsection{Item 1b}\label{item-1b}}
+
+Simule 200 observações de cada distribuição exponencial da parte (a).
+Usando os dados para estimar os parâmetros, supostos agora
+desconhecidos, obtenha o classificador de Bayes, a fronteira de decisão
+e as probabilidades de classificação incorreta com a regra obtida no
+exercício anterior. Compare os resultados com aqueles obtidos no item
+(a).
+
+\hypertarget{resposta-1}{%
+\subsubsection{Resposta:}\label{resposta-1}}
+
+Simulando cada distribuição exponecial
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lamda\_1 }\OtherTok{\textless{}{-}} \DecValTok{1}
+\NormalTok{lambda\_2 }\OtherTok{\textless{}{-}} \DecValTok{2}
+\NormalTok{n }\OtherTok{\textless{}{-}} \DecValTok{200}
+
+\NormalTok{amostra\_1 }\OtherTok{\textless{}{-}} \FunctionTok{rexp}\NormalTok{(n, }\AttributeTok{rate =} \DecValTok{1}\SpecialCharTok{/}\NormalTok{lamda\_1)}
+\NormalTok{amostra\_2 }\OtherTok{\textless{}{-}} \FunctionTok{rexp}\NormalTok{(n, }\AttributeTok{rate =} \DecValTok{1}\SpecialCharTok{/}\NormalTok{lambda\_2)}
+\end{Highlighting}
+\end{Shaded}
+
+Vamos assumir que os parâmetros são desconhecidos Nesse contexto, vamos
+assumir que \(X_j|Y = k \sim exp(\lambda_i)\). Temos que estmiar a média
+e variância para cada amostra:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{media\_1 }\OtherTok{\textless{}{-}}  \FunctionTok{mean}\NormalTok{(amostra\_1)}
+
+\NormalTok{media\_2 }\OtherTok{\textless{}{-}}  \FunctionTok{mean}\NormalTok{(amostra\_2)}
+\end{Highlighting}
+\end{Shaded}
+
+Temos que \(\mu_1 = 0.9999842\) e \(mu_2 = 1.8925848\). Como temos duas
+classes, para elementos com valor das variáveis preditoras igual a x
+devem ser classicada em \(C_1\) se
+
+\begin{equation}
+\frac{f_1(x)}{f_2(x)} \geq \frac{\pi_2}{\pi_1} = \frac{0,5}{0,5} = 1 \longrightarrow x \leq 1.3526
+
+\end{equation}
+
+A fronteira de classificação, portanto, é 1.3526
+
+\hypertarget{exercuxedcio-2}{%
+\section{Exercício 2}\label{exercuxedcio-2}}
+
+Considere os dados do arquivo \texttt{disco} e a variável resposta
+\texttt{y} = 1 se o disco estiver deslocado e \texttt{y} = 0, caso
+contrário. Use a função discriminante linear de Fisher para obter um
+classificador. Tome o conjunto de treinamento aquele contendo as
+primeiras 80 observações e o conjunto de teste contendo as demais 24
+observações. Obtenha um classificador tendo como variável preditora a
+distância aberta e outro tendo como preditores as duas distâncias. Use a
+função \texttt{lda()} do pacote \texttt{MASS}. Interprete os resultados
+e escolha o melhor classificador usando a acurácia como base. Obtenha a
+sensibilidade e especificidade de cada classificador.
+
+\hypertarget{resposta-2}{%
+\subsubsection{Resposta:}\label{resposta-2}}
+
+Extraindo o arquivo
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{disco }\OtherTok{\textless{}{-}}\NormalTok{ readxl}\SpecialCharTok{::}\FunctionTok{read\_excel}\NormalTok{(}\StringTok{"disco.xls"}\NormalTok{)}
+\FunctionTok{head}\NormalTok{(disco)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 6 x 3
+##   deslocamento distanciaA distanciaF
+##          <dbl>      <dbl>      <dbl>
+## 1            0        2.2        1.4
+## 2            0        2.4        1.2
+## 3            0        2.6        2  
+## 4            1        3.5        1.8
+## 5            0        1.3        1  
+## 6            1        2.8        1.1
+\end{verbatim}
+
+Definindo as amostras de treino e teste
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{treino }\OtherTok{\textless{}{-}}\NormalTok{ disco[}\DecValTok{1}\SpecialCharTok{:}\DecValTok{80}\NormalTok{,]}
+\NormalTok{teste }\OtherTok{\textless{}{-}}\NormalTok{ disco[}\DecValTok{81}\SpecialCharTok{:}\DecValTok{104}\NormalTok{,]}
+\end{Highlighting}
+\end{Shaded}
+
+Estimando classificador com preditor distância aberta
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lda\_dist\_aberta }\OtherTok{\textless{}{-}} \FunctionTok{lda}\NormalTok{(deslocamento }\SpecialCharTok{\textasciitilde{}}\NormalTok{ distanciaA, }\AttributeTok{data =}\NormalTok{ treino)}
+\NormalTok{lda\_pred\_dist\_aberta }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(lda\_dist\_aberta, }\AttributeTok{newdata =}\NormalTok{ teste)}
+\end{Highlighting}
+\end{Shaded}
+
+Estimando classificador cujas preditoras são as duas distâncias
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lda\_duas\_dist }\OtherTok{\textless{}{-}} \FunctionTok{lda}\NormalTok{(deslocamento }\SpecialCharTok{\textasciitilde{}}\NormalTok{ distanciaA }\SpecialCharTok{+}\NormalTok{ distanciaF, }\AttributeTok{data =}\NormalTok{ treino)}
+\NormalTok{lda\_pred\_duas\_dist }\OtherTok{\textless{}{-}}  \FunctionTok{predict}\NormalTok{(lda\_duas\_dist, }\AttributeTok{newdata =}\NormalTok{ teste)}
+\end{Highlighting}
+\end{Shaded}
+
+Calculando as taxas de erro dos modelos de distância aberta e com duas
+distâncias
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{(db }\OtherTok{\textless{}{-}}\NormalTok{  teste }\SpecialCharTok{\%\textgreater{}\%}  
+   \FunctionTok{mutate}\NormalTok{(}\AttributeTok{deslocamento\_pred\_dist\_aberta =}\NormalTok{ lda\_pred\_dist\_aberta}\SpecialCharTok{$}\NormalTok{class,}
+          \AttributeTok{erro\_pred\_dist\_aberta =}\NormalTok{ deslocamento\_pred\_dist\_aberta }\SpecialCharTok{!=}\NormalTok{ deslocamento,}
+          \AttributeTok{deslocamento\_pred\_duas\_dist =}\NormalTok{ lda\_pred\_duas\_dist}\SpecialCharTok{$}\NormalTok{class,}
+          \AttributeTok{erro\_pred\_duas\_dist =}\NormalTok{ deslocamento\_pred\_duas\_dist }\SpecialCharTok{!=}\NormalTok{ deslocamento,}
+\NormalTok{          )}
+\NormalTok{ )}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 24 x 7
+##    deslocamento distanciaA distanciaF deslocamento_pred_dist_aberta
+##           <dbl>      <dbl>      <dbl> <fct>                        
+##  1            1        2          1.3 0                            
+##  2            0        1.5        2.2 0                            
+##  3            0        1.7        1   0                            
+##  4            0        1.9        1.4 0                            
+##  5            1        2.5        3.1 0                            
+##  6            0        1.4        1.5 0                            
+##  7            1        2.5        1.8 0                            
+##  8            1        2.3        1.6 0                            
+##  9            0        1.2        0.4 0                            
+## 10            0        1          1.1 0                            
+## # i 14 more rows
+## # i 3 more variables: erro_pred_dist_aberta <lgl>,
+## #   deslocamento_pred_duas_dist <fct>, erro_pred_duas_dist <lgl>
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{taxa\_erro\_pred\_dist\_aberta }\OtherTok{\textless{}{-}}  \FunctionTok{sum}\NormalTok{(db}\SpecialCharTok{$}\NormalTok{erro\_pred\_dist\_aberta)}\SpecialCharTok{/}\DecValTok{24}
+\NormalTok{taxa\_erro\_pred\_duas\_dist }\OtherTok{\textless{}{-}}  \FunctionTok{sum}\NormalTok{(db}\SpecialCharTok{$}\NormalTok{erro\_pred\_duas\_dist)}\SpecialCharTok{/}\DecValTok{24}
+\end{Highlighting}
+\end{Shaded}
+
+A taxa de erro do modelo com distância aberta é 0.2916667;a taxa de erro
+do modelo com duas distâncias é 0.2083333.
+
+Criando a tabela para lda distância aberta:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{matriz\_dist\_aberta }\OtherTok{\textless{}{-}} \FunctionTok{table}\NormalTok{(}\AttributeTok{previsao =}\NormalTok{ lda\_pred\_dist\_aberta}\SpecialCharTok{$}\NormalTok{class, }\AttributeTok{observado =}\NormalTok{ teste}\SpecialCharTok{$}\NormalTok{deslocamento) }
+
+\NormalTok{acuracia\_dist\_aberta }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{(matriz\_dist\_aberta[}\FunctionTok{row}\NormalTok{(matriz\_dist\_aberta) }\SpecialCharTok{==} \FunctionTok{col}\NormalTok{(matriz\_dist\_aberta)])}\SpecialCharTok{/} \FunctionTok{sum}\NormalTok{(matriz\_dist\_aberta)}
+\NormalTok{sensibilidade\_dist\_aberta }\OtherTok{\textless{}{-}}\NormalTok{ matriz\_dist\_aberta[}\DecValTok{1}\NormalTok{,}\DecValTok{1}\NormalTok{]}\SpecialCharTok{/}\FunctionTok{sum}\NormalTok{(matriz\_dist\_aberta[}\DecValTok{1}\NormalTok{,}\DecValTok{1}\NormalTok{],matriz\_dist\_aberta[}\DecValTok{2}\NormalTok{,}\DecValTok{1}\NormalTok{])}
+\NormalTok{especificidade\_dist\_aberta }\OtherTok{\textless{}{-}}\NormalTok{ matriz\_dist\_aberta[}\DecValTok{2}\NormalTok{,}\DecValTok{2}\NormalTok{]}\SpecialCharTok{/}\FunctionTok{sum}\NormalTok{(matriz\_dist\_aberta[}\DecValTok{1}\NormalTok{,}\DecValTok{2}\NormalTok{],matriz\_dist\_aberta[}\DecValTok{2}\NormalTok{,}\DecValTok{2}\NormalTok{])}
+\NormalTok{matriz\_dist\_aberta}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##         observado
+## previsao  0  1
+##        0 14  7
+##        1  0  3
+\end{verbatim}
+
+A acurácia do modelo com distância aberta é 0.7083333; a sensibilidade
+do modelo com distância aberta é 1; a especificidade do modelo com
+distância aberta é 0.3.
+
+Criando a tabela para lda de duas distâncias:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{matriz\_duas\_dist }\OtherTok{\textless{}{-}} \FunctionTok{table}\NormalTok{(}\AttributeTok{previsao =}\NormalTok{ lda\_pred\_duas\_dist}\SpecialCharTok{$}\NormalTok{class,}\AttributeTok{observado =}\NormalTok{ teste}\SpecialCharTok{$}\NormalTok{deslocamento) }
+
+\NormalTok{acuracia\_duas\_dist }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{(matriz\_duas\_dist[}\FunctionTok{row}\NormalTok{(matriz\_duas\_dist) }\SpecialCharTok{==} \FunctionTok{col}\NormalTok{(matriz\_duas\_dist)])}\SpecialCharTok{/} \FunctionTok{sum}\NormalTok{(matriz\_duas\_dist)}
+
+\NormalTok{sensibilidade\_duas\_dist}\OtherTok{\textless{}{-}}\NormalTok{ matriz\_duas\_dist[}\DecValTok{1}\NormalTok{,}\DecValTok{1}\NormalTok{]}\SpecialCharTok{/}\FunctionTok{sum}\NormalTok{(matriz\_duas\_dist[}\FunctionTok{row}\NormalTok{(matriz\_duas\_dist) }\SpecialCharTok{==} \FunctionTok{col}\NormalTok{(matriz\_duas\_dist)])}
+\NormalTok{especificidade\_duas\_dist }\OtherTok{\textless{}{-}}\NormalTok{ matriz\_duas\_dist[}\DecValTok{2}\NormalTok{,}\DecValTok{2}\NormalTok{]}\SpecialCharTok{/}\FunctionTok{sum}\NormalTok{(matriz\_duas\_dist[}\DecValTok{1}\NormalTok{,}\DecValTok{2}\NormalTok{],matriz\_duas\_dist[}\DecValTok{2}\NormalTok{,}\DecValTok{2}\NormalTok{])}
+\NormalTok{matriz\_duas\_dist}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##         observado
+## previsao  0  1
+##        0 14  5
+##        1  0  5
+\end{verbatim}
+
+A acurácia do modelo com duas distâncias é 0.7916667; a sensibilidade do
+modelo com distância aberta é 0.7368421; a especificidade do modelo com
+distância aberta é 0.5.
+
+Pelo critério de acúracia, o modelo de duas distâncias é melhor
+
+\hypertarget{exeruxedcio-3}{%
+\section{Exerício 3}\label{exeruxedcio-3}}
+
+Use o mesmo conjunto de dados do problema anterior e distância aberta
+como variável preditora. Use LOOCV e o classificador KNN, com vizinhos
+mais próximos de 1 a 5.
+
+\hypertarget{reposta}{%
+\subsubsection{Reposta:}\label{reposta}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# ajustes na base para estimação}
+
+\NormalTok{disco }\OtherTok{\textless{}{-}}\NormalTok{ disco }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{deslocamento =} \FunctionTok{as.factor}\NormalTok{(deslocamento))}
+
+\NormalTok{trControl\_loocv }\OtherTok{\textless{}{-}} \FunctionTok{trainControl}\NormalTok{(}\AttributeTok{method =} \StringTok{"LOOCV"}\NormalTok{)}
+\NormalTok{knn\_fit }\OtherTok{\textless{}{-}} \FunctionTok{train}\NormalTok{(deslocamento }\SpecialCharTok{\textasciitilde{}}\NormalTok{ distanciaA, }\AttributeTok{method =} \StringTok{"knn"}\NormalTok{,}
+\AttributeTok{tuneGrid =} \FunctionTok{expand.grid}\NormalTok{(}\AttributeTok{k =} \DecValTok{1}\SpecialCharTok{:}\DecValTok{5}\NormalTok{),}
+\AttributeTok{trControl =}\NormalTok{ trControl\_loocv, }\AttributeTok{metric=} \StringTok{"Accuracy"}\NormalTok{,}
+\AttributeTok{data =}\NormalTok{ disco)}
+\NormalTok{knn\_fit}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## k-Nearest Neighbors 
+## 
+## 104 samples
+##   1 predictor
+##   2 classes: '0', '1' 
+## 
+## No pre-processing
+## Resampling: Leave-One-Out Cross-Validation 
+## Summary of sample sizes: 103, 103, 103, 103, 103, 103, ... 
+## Resampling results across tuning parameters:
+## 
+##   k  Accuracy   Kappa    
+##   1  0.7980769  0.4699029
+##   2  0.7980769  0.4699029
+##   3  0.7788462  0.3922764
+##   4  0.8461538  0.5618747
+##   5  0.8076923  0.4776494
+## 
+## Accuracy was used to select the optimal model using the largest value.
+## The final value used for the model was k = 4.
+\end{verbatim}
+
+\hypertarget{item-3a}{%
+\subsection{Item 3a}\label{item-3a}}
+
+Qual o melhor classificador baseado na acurácia?
+
+\hypertarget{resposta-3}{%
+\subsubsection{Resposta:}\label{resposta-3}}
+
+O melhor classsificador, baseado em acuária, é o modelo knn com k = 4.
+
+\hypertarget{item-3b}{%
+\subsection{Item 3b}\label{item-3b}}
+
+Obtenha a matriz de confusão e realize o teste de McNemar.
+
+\hypertarget{resposta-4}{%
+\subsubsection{Resposta:}\label{resposta-4}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{predict\_knn }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(knn\_fit)}
+\NormalTok{matriz\_confusao\_tudo }\OtherTok{\textless{}{-}} \FunctionTok{confusionMatrix}\NormalTok{(predict\_knn, disco}\SpecialCharTok{$}\NormalTok{deslocamento)}
+\NormalTok{matriz\_confusao }\OtherTok{\textless{}{-}}\NormalTok{  matriz\_confusao\_tudo}\SpecialCharTok{$}\NormalTok{table}
+\NormalTok{mcnemars\_kkn }\OtherTok{\textless{}{-}}\NormalTok{ matriz\_confusao\_tudo[[}\StringTok{"overall"}\NormalTok{]][[}\StringTok{"McnemarPValue"}\NormalTok{]]}
+
+\NormalTok{matriz\_confusao\_tudo}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction  0  1
+##          0 71 12
+##          1  4 17
+##                                           
+##                Accuracy : 0.8462          
+##                  95% CI : (0.7622, 0.9094)
+##     No Information Rate : 0.7212          
+##     P-Value [Acc > NIR] : 0.002035        
+##                                           
+##                   Kappa : 0.5821          
+##                                           
+##  Mcnemar's Test P-Value : 0.080118        
+##                                           
+##             Sensitivity : 0.9467          
+##             Specificity : 0.5862          
+##          Pos Pred Value : 0.8554          
+##          Neg Pred Value : 0.8095          
+##              Prevalence : 0.7212          
+##          Detection Rate : 0.6827          
+##    Detection Prevalence : 0.7981          
+##       Balanced Accuracy : 0.7664          
+##                                           
+##        'Positive' Class : 0               
+## 
+\end{verbatim}
+
+A matriz de confusão é 71, 4, 12, 17. A estatística do teste de
+Mcnemar's é 0.0801183.
+
+\hypertarget{item-3c}{%
+\subsection{Item 3c}\label{item-3c}}
+
+Obtenha a sensibilidade e a especificidade e explique seus significados
+nesse caso.
+
+\hypertarget{resposta-5}{%
+\subsubsection{Resposta:}\label{resposta-5}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{knn\_sensitivity }\OtherTok{\textless{}{-}}\NormalTok{ matriz\_confusao\_tudo}\SpecialCharTok{$}\NormalTok{byClass[}\DecValTok{1}\NormalTok{]}
+
+\NormalTok{knn\_specificity }\OtherTok{\textless{}{-}}\NormalTok{ matriz\_confusao\_tudo}\SpecialCharTok{$}\NormalTok{byClass[}\DecValTok{2}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+A sensibilidade é 0.9466667 e a especificidade é 0.5862069. Aqui a
+sensibilidade é uma estimativa das probabilidades de decisões corretas
+quando o disco realmente não esta deslocado. A especificidade, por sua
+vez, é uma estimativa das probabilidades de decisões corretas quando o
+disco realmente está deslocado
+
+\hypertarget{exercuxedcio-4}{%
+\section{Exercício 4}\label{exercuxedcio-4}}
+
+O conjunto de dados \texttt{Auto} do pacote \texttt{ISLR} contém as
+seguintes variáveis:
+
+\begin{itemize}
+\item
+  \texttt{mpg}: miles per gallon
+\item
+  \texttt{cylinders}: Number of cylinders between 4 and 8
+\item
+  \texttt{displacement}: Engine displacement (cubic inches)
+\item
+  \texttt{horsepower}: Engine horsepower
+\item
+  \texttt{weight}: Vehicle weight (lbs.)
+\item
+  \texttt{acceleration}: Time to accelerate from 0 to 60 mph (sec.)
+\item
+  \texttt{year}: Model year (modulo 100)
+\item
+  \texttt{origin}: Origin of car (1. American, 2. European, 3. Japanese)
+\item
+  \texttt{name}: Vehicle name
+\end{itemize}
+
+\hypertarget{item-4a}{%
+\subsection{Item 4a}\label{item-4a}}
+
+Divida os dados em conjunto de treinamento (\texttt{S}) e conjunto de
+teste (\texttt{T}).
+
+\hypertarget{resposta-6}{%
+\subsubsection{Resposta:}\label{resposta-6}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{sample }\OtherTok{\textless{}{-}} \FunctionTok{sample}\NormalTok{(}\FunctionTok{c}\NormalTok{(}\ConstantTok{TRUE}\NormalTok{, }\ConstantTok{FALSE}\NormalTok{), }\FunctionTok{nrow}\NormalTok{(Auto), }\AttributeTok{replace=}\ConstantTok{TRUE}\NormalTok{, }\AttributeTok{prob=}\FunctionTok{c}\NormalTok{(}\FloatTok{0.7}\NormalTok{,}\FloatTok{0.3}\NormalTok{))}
+\NormalTok{S  }\OtherTok{\textless{}{-}}\NormalTok{ Auto[sample, ]}
+\NormalTok{T   }\OtherTok{\textless{}{-}}\NormalTok{ Auto[}\SpecialCharTok{!}\NormalTok{sample, ]}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{item-4b}{%
+\subsection{Item 4b}\label{item-4b}}
+
+Ajuste um modelo aos dados de \texttt{S} tendo \texttt{horsepower} como
+preditor e \texttt{mpg} como resposta. Obtenha os EMQ de treinamento e
+faça o diagnóstico do modelo. O que você nota no gráfico dos resíduos
+contra valores ajustados? Obtenha o EQM de teste.
+
+\hypertarget{resposta-7}{%
+\subsubsection{Resposta:}\label{resposta-7}}
+
+Estimando modelo de EMQ de treinamtno
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# EMQ de treinamento}
+\NormalTok{emq\_auto }\OtherTok{\textless{}{-}} \FunctionTok{glm}\NormalTok{(}\AttributeTok{formula =}\NormalTok{ mpg }\SpecialCharTok{\textasciitilde{}}\NormalTok{ horsepower, }\AttributeTok{data =}\NormalTok{ S) }
+\FunctionTok{summary}\NormalTok{(emq\_auto)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## glm(formula = mpg ~ horsepower, data = S)
+## 
+## Deviance Residuals: 
+##      Min        1Q    Median        3Q       Max  
+## -13.6436   -3.1693   -0.3081    2.7162   16.8378  
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(>|t|)    
+## (Intercept) 40.149014   0.849423   47.27   <2e-16 ***
+## horsepower  -0.159797   0.007611  -20.99   <2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for gaussian family taken to be 23.53215)
+## 
+##     Null deviance: 16796.2  on 274  degrees of freedom
+## Residual deviance:  6424.3  on 273  degrees of freedom
+## AIC: 1653
+## 
+## Number of Fisher Scoring iterations: 2
+\end{verbatim}
+
+Criando gráfico dos resíduos contra valores ajustados.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{emq\_valores\_ajustados }\OtherTok{\textless{}{-}} \FunctionTok{fitted.values}\NormalTok{(emq\_auto)}
+\NormalTok{emq\_residuos }\OtherTok{\textless{}{-}} \FunctionTok{residuals}\NormalTok{(emq\_auto)}
+
+\FunctionTok{plot}\NormalTok{(emq\_valores\_ajustados, emq\_residuos, }
+     \AttributeTok{xlab =} \StringTok{"Valores Ajustados"}\NormalTok{, }
+     \AttributeTok{ylab =} \StringTok{"Resíduos"}\NormalTok{,}
+     \AttributeTok{main =} \StringTok{"Gráfico de Valores Ajustados vs. Resíduos"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{prova1_files/figure-latex/unnamed-chunk-17-1.pdf} O
+gráfico
+
+calculando EQM de teste:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{emq\_auto\_predict\_T }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(emq\_auto, }\AttributeTok{newdata =}\NormalTok{ T)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{item-4c}{%
+\subsection{Item 4c}\label{item-4c}}
+
+Agora inclua \((\text{horsepower})^2\) no modelo e proceda como no item
+(b). Qual modelo você escolheria? Justifique.
+
+\hypertarget{resposta-8}{%
+\subsubsection{Resposta:}\label{resposta-8}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{emq\_auto\_quadrado }\OtherTok{\textless{}{-}} \FunctionTok{glm}\NormalTok{(}\AttributeTok{formula =}\NormalTok{ mpg }\SpecialCharTok{\textasciitilde{}}\NormalTok{ horsepower }\SpecialCharTok{+}\NormalTok{ horsepower}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{, }\AttributeTok{data =}\NormalTok{ S) }
+\FunctionTok{summary}\NormalTok{(emq\_auto\_quadrado)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## glm(formula = mpg ~ horsepower + horsepower^2, data = S)
+## 
+## Deviance Residuals: 
+##      Min        1Q    Median        3Q       Max  
+## -13.6436   -3.1693   -0.3081    2.7162   16.8378  
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(>|t|)    
+## (Intercept) 40.149014   0.849423   47.27   <2e-16 ***
+## horsepower  -0.159797   0.007611  -20.99   <2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for gaussian family taken to be 23.53215)
+## 
+##     Null deviance: 16796.2  on 274  degrees of freedom
+## Residual deviance:  6424.3  on 273  degrees of freedom
+## AIC: 1653
+## 
+## Number of Fisher Scoring iterations: 2
+\end{verbatim}
+
+\hypertarget{item-4d}{%
+\subsection{Item 4d}\label{item-4d}}
+
+Ajuste um modelo de regressão ridge aos dados de \(S\), tendo
+\texttt{mpg} com resposta e \texttt{displacement}, \texttt{horsepower},
+\texttt{weight} e \texttt{acceleration} como preditores, com \(\lambda\)
+escolhido por VC. Obtenha o EQM de teste.
+
+\hypertarget{resposta-9}{%
+\subsubsection{Resposta:}\label{resposta-9}}
+
+Transformando dataframe em matriz
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{X\_linha }\OtherTok{\textless{}{-}}\NormalTok{ S[,}\DecValTok{3}\SpecialCharTok{:}\DecValTok{6}\NormalTok{]}
+\NormalTok{X\_linha\_matriz }\OtherTok{\textless{}{-}} \FunctionTok{as.matrix}\NormalTok{(X\_linha)}
+\NormalTok{Y\_linha }\OtherTok{\textless{}{-}} \FunctionTok{as.matrix}\NormalTok{(S[,}\DecValTok{1}\NormalTok{])}
+\end{Highlighting}
+\end{Shaded}
+
+Estimando o modelo Ridge, plotando o gráfico para efeito da avaliação do
+efeito do coeficiente de regularização e imprimindo coeficientes.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# estimando o modelo ridge}
+\NormalTok{emq\_auto\_ridge }\OtherTok{\textless{}{-}} \FunctionTok{cv.glmnet}\NormalTok{(X\_linha\_matriz, Y\_linha, }\AttributeTok{alpha =} \DecValTok{0}\NormalTok{) }
+\CommentTok{\# plot(emq\_auto\_ridge)}
+\FunctionTok{coef}\NormalTok{(emq\_auto\_ridge, }\AttributeTok{s =} \StringTok{"lambda.min"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 5 x 1 sparse Matrix of class "dgCMatrix"
+##                        s1
+## (Intercept)  43.455710885
+## displacement -0.017688879
+## horsepower   -0.047802163
+## weight       -0.003559223
+## acceleration -0.062057243
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lambda\_vc }\OtherTok{\textless{}{-}}\NormalTok{ emq\_auto\_ridge}\SpecialCharTok{$}\NormalTok{lambda.min}
+\end{Highlighting}
+\end{Shaded}
+
+O lambda escolhido por VC é 0.6505238.
+
+calculando o EQM.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{emq\_auto\_ridge\_predict }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(emq\_auto\_ridge, X\_linha\_matriz, }\AttributeTok{s =} \StringTok{"lambda.min"}\NormalTok{)}
+\NormalTok{emq\_auto\_ridge\_eqm }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(emq\_auto\_ridge}\SpecialCharTok{$}\NormalTok{cvm[emq\_auto\_ridge}\SpecialCharTok{$}\NormalTok{lambda }\SpecialCharTok{==}\NormalTok{ emq\_auto\_ridge}\SpecialCharTok{$}\NormalTok{lambda.min])}
+\NormalTok{emq\_auto\_ridge\_r2 }\OtherTok{\textless{}{-}}\NormalTok{ emq\_auto\_ridge}\SpecialCharTok{$}\NormalTok{dev.ratio}
+\end{Highlighting}
+\end{Shaded}
+
+Temos que o EQM é 4.2649823
+
+\hypertarget{item-4e}{%
+\subsection{Item 4e}\label{item-4e}}
+
+Ajuste um modelo de regressão \texttt{lasso} e proceda como em (d).
+Quais coeficientes foram zerados? Comente sobre os resultados obtidos em
+(d) e (e), baseados no \(R^2\) e \(EQMI\).
+
+\hypertarget{resposta-10}{%
+\subsubsection{Resposta}\label{resposta-10}}
+
+Estimando o modelo de regerssão lasso e imprimindo os coeficientes.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{emq\_auto\_lasso }\OtherTok{=} \FunctionTok{cv.glmnet}\NormalTok{(X\_linha\_matriz, Y\_linha, }\AttributeTok{alpha =} \DecValTok{1}\NormalTok{)}
+\FunctionTok{coef}\NormalTok{(emq\_auto\_lasso, }\AttributeTok{s =} \StringTok{"lambda.min"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 5 x 1 sparse Matrix of class "dgCMatrix"
+##                        s1
+## (Intercept)  43.737436088
+## displacement -0.011208999
+## horsepower   -0.040513292
+## weight       -0.004654042
+## acceleration  .
+\end{verbatim}
+
+Como se pode notar, o coeficiente de acceleration foi zerado.
+
+Calculando \(R^2\) e \(EQMI\) do Lasso.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{emq\_auto\_lasso\_eqm }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(emq\_auto\_lasso}\SpecialCharTok{$}\NormalTok{cvm[emq\_auto\_lasso}\SpecialCharTok{$}\NormalTok{lambda }\SpecialCharTok{==}\NormalTok{ emq\_auto\_lasso}\SpecialCharTok{$}\NormalTok{lambda.min])}
+\NormalTok{emq\_auto\_lasso\_r2 }\OtherTok{\textless{}{-}}\NormalTok{ emq\_auto\_lasso}\SpecialCharTok{$}\NormalTok{dev.ratio}
+\end{Highlighting}
+\end{Shaded}
+
+
+\end{document}

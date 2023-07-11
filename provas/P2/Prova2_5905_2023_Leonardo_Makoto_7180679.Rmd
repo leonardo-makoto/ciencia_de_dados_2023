@@ -1,0 +1,924 @@
+---
+title: "MAE 5905: Introdução à Ciência de Dados - Prova 2"
+author:
+  "Leonardo Makoto - 7180679"
+date: "11/07/2023"
+output: 
+  html_document
+
+
+---
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+options(scipen=999)
+options(width = 60)
+```
+
+
+```{r, message = FALSE}
+# carregando pacotes gerais
+library(tidyverse)
+```
+
+## Questão 1 (3,0 pontos)
+
+Considere o conjunto de dados `Boston` do pacote `MASS`, contendo n = 506 amostras e p = 14 variáveis. Considere o conjunto de treinamento contendo as primeiras 253 amostras e o conjunto teste contendo as amostras restantes. Ajuste uma árvore de regressão, considerando a variável `medv` como resposta.
+
+--------------------------------------------------------------------------------
+
+```{r, message = FALSE}
+# carregando bibliotecas e dados
+
+library(MASS)
+
+# carregando boston
+data("Boston")
+boston <-  Boston
+attach(boston)
+
+# visualizando uma amostrade boston, com características da base
+glimpse(boston)
+
+# algumas estatísticas básicas de boston
+summary(boston)
+
+# definindo amostra de treinamento e de teste
+boston_treinamento <- boston[1:253,]
+boston_teste <- boston[254:nrow(boston),]
+```
+
+
+
+## (a) Ajuste um modelo de árvore aos dados de treinamento. Verifique se é necessário podar a árvore.
+
+--------------------------------------------------------------------------------
+
+```{r}
+# carregando bibliotecas
+library(tree)
+
+# ajudando modelo aos dados de treinamento
+set.seed(123)
+
+boston_treinamento_tree <- tree(medv ~ crim + zn + indus + chas + nox + rm + age + dis + rad + tax + ptratio + black + lstat, data = boston_treinamento )
+boston_treinamento_tree
+summary(boston_treinamento_tree)
+
+```
+Note que o output do **summary()** mostra que somente 3 variáveis (rm (número médio de quartos por habitação),lstat (% de status social mais baixo da população) e crim (taxa de criminalidade per capita por cidade)) foram usadas para construir a árvore. **Deviance** mostra a soma do erros quadrados para uma árvore.
+
+Vamos plotar a árvore:
+
+```{r}
+plot(boston_treinamento_tree)
+text(boston_treinamento_tree , pretty = 0)
+```
+
+A árvore indica que para valores mais altos de número médio de quartos por habitação, correspondem para valores mais altos de medv (a variável resposta: Valor médio de casas ocupadas pelos proprietários em US$ 1.000.). Ainda, no grupo de valores menos altos de número médio de quartos por habitação (rm < 6,92), aqueles que tem valores menores de lstat (% de status social mais baixo da população), tem status valroes mais altos de medv.
+
+Para testar se podar a árvore é necessário, vamos usar *cross-validation*.
+
+
+
+```{r}
+cv_boston_treinamento_tree <-  cv.tree(boston_treinamento_tree)
+cv_boston_treinamento_tree
+summary(cv_boston_treinamento_tree)
+plot(cv_boston_treinamento_tree$size , cv_boston_treinamento_tree$dev, type = "b")
+```
+
+Uma árvore de 7 nódulos é selecionada por **cross-validation**. Vamos podar a árvore:
+
+```{r}
+boston_prune <- prune.tree(boston_treinamento_tree , best = 7)
+plot(boston_prune)
+text(boston_prune , pretty = 0)
+```
+
+Por meio dde **cross-validation**, não parece ser necessário podar a árvore. A árvore não podada já leva a 7 nódulos e para exatamente a mesma árvore.
+
+--------------------------------------------------------------------------------
+
+
+## (b) Use a árvore não podada para fazer previsões para o conjunto teste. Calcule o EQM.
+
+--------------------------------------------------------------------------------
+
+```{r}
+# previsões para o conjunto teste
+
+boston_teste_pred_tree <- predict(boston_treinamento_tree, newdata = boston_teste)
+plot(boston_teste_pred_tree , boston_teste$medv)
+
+# Calcular o EQM
+eqm_teste_tree <- mean((boston_teste$medv - boston_teste_pred_tree)^2)
+eqm_teste_tree
+sqrt(eqm_teste_tree)
+```
+
+Isto é, o erro quadratíco médio de teste associado a árvore de regressão é 34,2754.
+A raiz quadrada do EQM de teste é aproximadamente 5,854519. Isto é, o modelo leva a previsões de teste que são, em média, entre aproximadamente $5.854519, do valor verdadeiro de medv.
+
+--------------------------------------------------------------------------------
+
+## (c) Use bagging, florestas e boosting e comente sobre o melhor ajuste.
+
+--------------------------------------------------------------------------------
+
+Estimando o bagging:
+
+```{r}
+# Carregar bibliotecas
+library(randomForest)
+library(gbm)
+set.seed(123)
+
+# Bagging
+boston_treinamento_bagging <- randomForest(
+  medv ~ ., 
+  data = boston_treinamento,
+  mtry = 12,
+  importance = TRUE
+  )
+
+boston_treinamento_bagging
+
+boston_teste_pred_bagging <- predict(boston_treinamento_bagging, newdata = boston_teste)
+
+eqm_bagging <- mean((boston_teste$medv - boston_teste_pred_bagging)^2)
+eqm_bagging
+```
+O erro quadrático médio de teste associado ao bagging é `r`eqm_bagging`.
+
+
+```{r}
+# Random Forests
+boston_treinamento_rf <- randomForest(
+  medv ~ ., 
+  data = boston_treinamento,
+  mtry = 6,
+  ntree = 25
+  )
+
+boston_treinamento_rf
+
+boston_teste_pred_rf <- predict(boston_treinamento_rf, newdata = boston_teste)
+eqm_rf <- mean((boston_teste$medv - boston_teste_pred_rf)^2)
+eqm_rf
+```
+O erro quadrático de teste para florestas aleatórias é `r eqm_rf`.
+
+
+```{r}
+# Boosting
+boston_treinamento_boosting <- gbm(
+  medv ~ .,
+  data = boston_treinamento,
+  distribution = "gaussian",
+  n.trees = 5000,
+  interaction.depth = 4
+  )
+summary(boston_treinamento_boosting)
+
+
+boston_teste_pred_boosting <- predict(
+  boston_treinamento_boosting, 
+  newdata = boston_teste, 
+  n.trees = 5000)
+
+eqm_boosting <- mean((boston_teste$medv - boston_teste_pred_boosting)^2)
+
+eqm_boosting
+
+```
+
+O erro quadrático de teste para boosting é `r eqm_boosting`.
+
+Usando como medida de comparação o erro quadrático de teste, o modelo com melhor ajuste é o boosting.
+
+--------------------------------------------------------------------------------
+
+
+## Questão 2 (4,0 pontos)
+
+Considere o conjunto de dados `OJ` do pacote `ISLR`.
+--------------------------------------------------------------------------------
+
+```{r}
+# carregando bibliotecas e dados
+library(ISLR)
+
+#carregando oj
+data("OJ")
+oj <- OJ
+attach(oj)
+
+# visualizando uma amostra de oj, com características da base
+glimpse(oj)
+
+# algumas estatísticas básicas de oj
+summary(oj)
+
+```
+
+
+
+
+## (a) Crie um conjunto de treinamento contendo uma amostra de 800 observações e um conjunto teste contendo as observações restantes.
+
+--------------------------------------------------------------------------------
+
+```{r}
+
+# criando conjuntos de treinamento e de teste
+treino <- sample (1: nrow (oj), 800)
+
+oj_treino <- oj[treino,]
+
+oj_teste <-  oj[-treino,]
+```
+
+--------------------------------------------------------------------------------
+
+## (b) Ajuste um classificador SVM ao conjunto de treinamento usando `cost=0.01`, tendo `Purchase` como resposta e as outras variáveis como preditoras. Use a função `summary()` e descreva os resultados obtidos.
+
+--------------------------------------------------------------------------------
+
+```{r}
+library(e1071)
+# ajustando um svm no conjunto de treinamento
+oj_treino_svm <- svm(Purchase ~ ., kernel = "linear", data = oj_treino, cost = 0.01)
+summary(oj_treino_svm)
+
+
+```
+O SVM desse modelo criou  436 *support vectors* dentro de 800 observações, nas quais 219 pertencem ao conjunto CH e 217 pertencem ao conjunto de MM.
+  
+--------------------------------------------------------------------------------
+
+## (c) Quais são as taxas de erros de treinamento e de teste?
+
+--------------------------------------------------------------------------------
+
+```{r}
+# calculando a taxa de erro de treinamento
+oj_treino_svm_pred <- predict(oj_treino_svm, oj_treino)
+
+oj_treino_svm_table <- table(oj_treino$Purchase, oj_treino_svm_pred)
+oj_treino_svm_table
+oj_treino_svm_taxa_erro <- (oj_treino_svm_table[2,1]+oj_treino_svm_table[1,2]) /
+  (oj_treino_svm_table[1,1]+oj_treino_svm_table[2,1]+oj_treino_svm_table[1,2]+oj_treino_svm_table[2,2])
+oj_treino_svm_taxa_erro
+```
+
+A taxa de erro de treino é `r oj_treino_svm_taxa_erro`.
+
+
+```{r}
+# calculando a taxa de erro de teste
+oj_teste_svm_pred <- predict(oj_treino_svm, oj_teste)
+
+oj_teste_svm_table <- table(oj_teste$Purchase, oj_teste_svm_pred)
+oj_teste_svm_table
+oj_teste_svm_taxa_erro <- (oj_teste_svm_table[2,1]+oj_teste_svm_table[1,2]) /
+  (oj_teste_svm_table[1,1]+oj_teste_svm_table[2,1]+oj_teste_svm_table[1,2]+oj_teste_svm_table[2,2])
+oj_teste_svm_taxa_erro
+```
+
+A taxa de erro de teste é `r oj_teste_svm_taxa_erro`.
+
+--------------------------------------------------------------------------------
+
+## (d) Use a função `tune()` para selecionar um `cost` ótimo. Considere valores no intervalo 0.01 a 10.
+
+--------------------------------------------------------------------------------
+
+```{r}
+oj_treino_svm_tune <- tune(
+  svm, 
+  Purchase ~ .,
+  kernel = "linear", 
+  data = oj_treino, 
+  ranges = list(
+    cost = c(0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 2,  5, 10)
+  )
+)
+summary(oj_treino_svm_tune)
+oj_treino_svm_tune$best.parameters$cost
+oj_treino_svm_tune$performances$error
+
+```
+O **cost** ótimo é `r oj_treino_svm_tune$best.parameters$cost`.
+
+--------------------------------------------------------------------------------
+
+## (e) Calcule as taxas de erro para este novo valor de `cost`.
+
+--------------------------------------------------------------------------------
+
+Estimando o modelo com novo *cost*:
+```{r}
+# para calcular as taxas de erro para este novo valor de cost, vamos usar o parâmetro calculado no item anterior
+oj_treino_svm_best_cost <- svm(
+  Purchase ~ ., 
+  kernel = "linear", 
+  data = oj_treino, 
+  cost = oj_treino_svm_tune$best.parameters$cost
+  )
+```
+
+
+```{r}
+oj_treino_svm_best_cost_pred <- predict(oj_treino_svm_best_cost, oj_treino)
+
+oj_treino_svm_best_cost_table <- table(oj_treino$Purchase, oj_treino_svm_best_cost_pred)
+oj_treino_svm_best_cost_table
+oj_treino_svm_best_cost_taxa_erro <- (oj_treino_svm_best_cost_table[2,1]+oj_treino_svm_best_cost_table[1,2]) /
+  (oj_treino_svm_best_cost_table[1,1]+oj_treino_svm_best_cost_table[2,1]+oj_treino_svm_best_cost_table[1,2]+oj_treino_svm_best_cost_table[2,2])
+oj_treino_svm_best_cost_taxa_erro
+```
+
+A taxa de erro de treino, para *cost* ótimo de `r oj_treino_svm_tune$best.parameters$cost`, é `r oj_treino_svm_best_cost_taxa_erro`.
+
+```{r}
+oj_teste_svm_best_cost_pred <- predict(oj_treino_svm_best_cost, oj_teste)
+
+oj_teste_svm_best_cost_table <- table(oj_teste$Purchase, oj_teste_svm_best_cost_pred)
+oj_teste_svm_best_cost_table
+oj_teste_svm_best_cost_taxa_erro <- (oj_teste_svm_best_cost_table[2,1]+oj_teste_svm_best_cost_table[1,2]) /
+  (oj_teste_svm_best_cost_table[1,1]+oj_teste_svm_best_cost_table[2,1]+oj_teste_svm_best_cost_table[1,2]+oj_teste_svm_best_cost_table[2,2])
+oj_teste_svm_best_cost_taxa_erro
+
+```
+A taxa de erro de teste, para *cost* ótimo de `r oj_treino_svm_tune$best.parameters$cost`, é `r oj_teste_svm_best_cost_taxa_erro`.
+
+
+--------------------------------------------------------------------------------
+
+## (f) Repita (b)-(e) usando SVM com kernel radial. Use o valor default para `gamma`.
+
+--------------------------------------------------------------------------------
+```{r}
+oj_treino_svm_radial <- svm(
+  Purchase ~ ., 
+  kernel = "radial", 
+  data = oj_treino, 
+  cost = oj_treino_svm_tune$best.parameters$cost
+  )
+
+summary(oj_treino_svm_radial)
+```
+
+O SVM desse modelo, com **kernel radial** criou  357 *support vectors* dentro de 800 observações, nas quais 184 pertencem ao conjunto CH e 173 pertencem ao conjunto de MM.
+
+```{r}
+oj_treino_svm_radial_pred <- predict(oj_treino_svm_radial, oj_treino)
+
+oj_treino_svm_radial_table <- table(oj_treino$Purchase, oj_treino_svm_radial_pred)
+oj_treino_svm_radial_table
+oj_treino_svm_radial_taxa_erro <- (oj_treino_svm_radial_table[2,1]+oj_treino_svm_radial_table[1,2]) /
+  (oj_treino_svm_radial_table[1,1]+oj_treino_svm_radial_table[2,1]+oj_treino_svm_radial_table[1,2]+oj_treino_svm_radial_table[2,2])
+oj_treino_svm_radial_taxa_erro
+```
+
+A taxa de erro de treino, com a especificação de **kernel radial** é `r oj_treino_svm_radial_taxa_erro`.
+
+```{r}
+oj_teste_svm_radial_pred <- predict(oj_treino_svm_radial, oj_teste)
+
+oj_teste_svm_radial_table <- table(oj_teste$Purchase, oj_teste_svm_radial_pred)
+oj_teste_svm_radial_table
+oj_teste_svm_radial_taxa_erro <- (oj_teste_svm_radial_table[2,1]+oj_teste_svm_radial_table[1,2]) /
+  (oj_teste_svm_radial_table[1,1]+oj_teste_svm_radial_table[2,1]+oj_teste_svm_radial_table[1,2]+oj_teste_svm_radial_table[2,2])
+oj_teste_svm_radial_taxa_erro
+```
+
+A taxa de erro de teste, com a especificação de  **kernel radial**, é `r oj_teste_svm_radial_taxa_erro`.
+
+```{r}
+oj_treino_svm_radial_tune <- tune(
+  svm, 
+  Purchase ~ .,
+  kernel = "linear", 
+  data = oj_treino, 
+  ranges = list(
+    cost = c(0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 2,  5, 10)
+  )
+)
+summary(oj_treino_svm_radial_tune)
+oj_treino_svm_radial_tune$best.parameters$cost
+oj_treino_svm_radial_tune$performances$error
+```
+
+O **cost** ótimo com a especificação de  **kernel radial** é `r oj_treino_svm_radial_tune$best.parameters$cost`.
+
+
+Estimando o modelo com novo *cost*:
+
+```{r}
+oj_treino_svm_radial_best_cost <- svm(
+  Purchase ~ ., 
+  kernel = "linear", 
+  data = oj_treino, 
+  cost = oj_treino_svm_radial_tune$best.parameters$cost
+  )
+  
+  oj_treino_svm_radial_best_cost_pred <- predict(oj_treino_svm_radial_best_cost, oj_treino)
+
+oj_treino_svm_radial_best_cost_table <- table(oj_treino$Purchase, oj_treino_svm_radial_best_cost_pred)
+oj_treino_svm_radial_best_cost_table
+oj_treino_svm_radial_best_cost_taxa_erro <- (oj_treino_svm_radial_best_cost_table[2,1]+oj_treino_svm_radial_best_cost_table[1,2]) /
+  (oj_treino_svm_radial_best_cost_table[1,1]+oj_treino_svm_radial_best_cost_table[2,1]+oj_treino_svm_radial_best_cost_table[1,2]+oj_treino_svm_radial_best_cost_table[2,2])
+oj_treino_svm_radial_best_cost_taxa_erro
+```
+
+
+A taxa de erro de treino, para *cost* ótimo de `r oj_treino_svm_radial_tune$best.parameters$cost`, é `r oj_treino_svm_radial_best_cost_taxa_erro`.
+
+
+
+```{r}
+oj_teste_svm_radial_best_cost_pred <- predict(oj_treino_svm_radial_best_cost, oj_teste)
+
+oj_teste_svm_radial_best_cost_table <- table(oj_teste$Purchase, oj_teste_svm_radial_best_cost_pred)
+oj_teste_svm_radial_best_cost_table
+oj_teste_svm_radial_best_cost_taxa_erro <- (oj_teste_svm_radial_best_cost_table[2,1]+oj_teste_svm_radial_best_cost_table[1,2]) /
+  (oj_teste_svm_radial_best_cost_table[1,1]+oj_teste_svm_radial_best_cost_table[2,1]+oj_teste_svm_radial_best_cost_table[1,2]+oj_teste_svm_radial_best_cost_table[2,2])
+oj_teste_svm_radial_best_cost_taxa_erro
+```
+
+A taxa de erro de teste, para *cost* ótimo de `r oj_treino_svm_radial_tune$best.parameters$cost`, é `r oj_treino_svm_radial_best_cost_taxa_erro`.
+
+--------------------------------------------------------------------------------
+
+## (g) Repita (b)-(e) com um kernel polinomial com `degree=2`.
+
+--------------------------------------------------------------------------------
+
+```{r}
+oj_treino_svm_poly_2 <- svm(
+  Purchase ~ ., 
+  kernel = "poly", 
+  degree = 2,
+  data = oj_treino, 
+  cost = oj_treino_svm_tune$best.parameters$cost)
+
+summary(oj_treino_svm_poly_2)
+```
+
+O SVM desse modelo com a especificação de **kernel polinomial com `degree=2** criou  383 *support vectors* dentro de 800 observações, nas quais 199 pertencem ao conjunto CH e 184 pertencem ao conjunto de MM.
+
+
+```{r}
+oj_treino_svm_poly_2_pred <- predict(oj_treino_svm_poly_2, oj_treino)
+
+oj_treino_svm_poly_2_table <- table(oj_treino$Purchase, oj_treino_svm_poly_2_pred)
+oj_treino_svm_poly_2_table
+oj_treino_svm_poly_2_taxa_erro <- (oj_treino_svm_poly_2_table[2,1]+oj_treino_svm_poly_2_table[1,2]) /
+  (oj_treino_svm_poly_2_table[1,1]+oj_treino_svm_poly_2_table[2,1]+oj_treino_svm_poly_2_table[1,2]+oj_treino_svm_poly_2_table[2,2])
+oj_treino_svm_poly_2_taxa_erro
+```
+
+A taxa de erro de treino com a especificação de **kernel polinomial com `degree=2** é `r oj_treino_svm_poly_2_taxa_erro`.
+
+
+
+```{r}
+oj_teste_svm_poly_2_pred <- predict(oj_treino_svm_poly_2, oj_teste)
+
+oj_teste_svm_poly_2_table <- table(oj_teste$Purchase, oj_teste_svm_poly_2_pred)
+oj_teste_svm_poly_2_table
+oj_teste_svm_poly_2_taxa_erro <- (oj_teste_svm_poly_2_table[2,1]+oj_teste_svm_poly_2_table[1,2]) /
+  (oj_teste_svm_poly_2_table[1,1]+oj_teste_svm_poly_2_table[2,1]+oj_teste_svm_poly_2_table[1,2]+oj_teste_svm_poly_2_table[2,2])
+oj_teste_svm_poly_2_taxa_erro
+```
+
+A taxa de erro de teste com a especificação de **kernel polinomial com `degree=2** é `r oj_teste_svm_poly_2_taxa_erro`.
+
+
+```{r}
+oj_treino_svm_poly_2_tune <- tune(
+  svm, 
+  Purchase ~ .,
+  kernel = "linear", 
+  data = oj_treino, 
+  ranges = list(
+    cost = c(0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 2,  5, 10)
+  )
+)
+summary(oj_treino_svm_poly_2_tune)
+oj_treino_svm_poly_2_tune$best.parameters$cost
+oj_treino_svm_poly_2_tune$performances$error
+```
+
+O **cost** ótimo com a especificação de **kernel polinomial com `degree=2** é `r oj_treino_svm_poly_2_tune$best.parameters$cost`.
+
+
+Estimando o modelo com novo *cost*:
+
+```{r}
+oj_treino_svm_poly_2_best_cost <- svm(
+  Purchase ~ ., 
+  kernel = "linear", 
+  data = oj_treino, 
+  cost = oj_treino_svm_poly_2_tune$best.parameters$cost
+  )
+```
+
+
+```{r}
+oj_treino_svm_poly_2_best_cost_pred <- predict(oj_treino_svm_poly_2_best_cost, oj_treino)
+
+oj_treino_svm_poly_2_best_cost_table <- table(oj_treino$Purchase, oj_treino_svm_poly_2_best_cost_pred)
+oj_treino_svm_poly_2_best_cost_table
+oj_treino_svm_poly_2_best_cost_taxa_erro <- (oj_treino_svm_poly_2_best_cost_table[2,1]+oj_treino_svm_poly_2_best_cost_table[1,2]) /
+  (oj_treino_svm_poly_2_best_cost_table[1,1]+oj_treino_svm_poly_2_best_cost_table[2,1]+oj_treino_svm_poly_2_best_cost_table[1,2]+oj_treino_svm_poly_2_best_cost_table[2,2])
+oj_treino_svm_poly_2_best_cost_taxa_erro
+```
+
+A taxa de erro de treino com a especificação de **kernel polinomial com `degree=2**, para *cost* ótimo de `r oj_treino_svm_poly_2_tune$best.parameters$cost`, é `r oj_treino_svm_poly_2_best_cost_taxa_erro`.
+
+
+
+```{r}
+oj_teste_svm_poly_2_best_cost_pred <- predict(oj_treino_svm_poly_2_best_cost, oj_teste)
+
+oj_teste_svm_poly_2_best_cost_table <- table(oj_teste$Purchase, oj_teste_svm_poly_2_best_cost_pred)
+oj_teste_svm_poly_2_best_cost_table
+oj_teste_svm_poly_2_best_cost_taxa_erro <- (oj_teste_svm_poly_2_best_cost_table[2,1]+oj_teste_svm_poly_2_best_cost_table[1,2]) /
+  (oj_teste_svm_poly_2_best_cost_table[1,1]+oj_teste_svm_poly_2_best_cost_table[2,1]+oj_teste_svm_poly_2_best_cost_table[1,2]+oj_teste_svm_poly_2_best_cost_table[2,2])
+oj_teste_svm_poly_2_best_cost_taxa_erro
+```
+
+
+A taxa de erro de teste com a especificação de **kernel polinomial com `degree=2**, para *cost* ótimo de `r oj_treino_svm_poly_2_tune$best.parameters$cost`, é `r oj_teste_svm_poly_2_best_cost_taxa_erro`.
+
+
+--------------------------------------------------------------------------------
+
+## (h) Qual procedimento parece dar os melhores resultados para esses dados?
+
+--------------------------------------------------------------------------------
+A taxa de erro de teste com **kernel linear**  e com **cost** ótimo é `r oj_teste_svm_best_cost_taxa_erro`.
+
+A taxa de erro de teste com **kernel radial**  e com **cost** ótimo é `r oj_teste_svm_radial_best_cost_taxa_erro`.
+
+A taxa de erro de teste com **kernel polinomial com `degree=2**  e com **cost** ótimo é `r oj_teste_svm_poly_2_best_cost_taxa_erro`.
+
+O procedimento que parece dar os melhroes resultados para esses dados é o SVM com **kernel linear**.
+
+--------------------------------------------------------------------------------
+
+## Questão 3 (3,0 pontos)
+
+Considere o conjunto de dados `food-texture`, que pode ser encontrado em [openmv.net/info/food-texture](openmv.net/info/food-texture). Os dados estão no formato CSV. Leia com atenção o significado de cada variável.
+
+--------------------------------------------------------------------------------
+
+
+```{r}
+# carregando bibliotecas e dados
+library(corrplot)
+library(psych)
+
+
+food_texture <-  read.csv(file='food-texture.csv')
+head(food_texture)
+glimpse(food_texture)
+summary(food_texture)
+```
+
+A base de dados simulada **food_texture** contém medidas de comidas de confeitaria. 
+
+**Oil**: porcentagem de óleo na massa;
+
+**Density**: a densidade do produto (quanto maior o número, mais denso o produto);
+
+**Crispy**: uma medida de crocância, em uma escala de 7 a 15, sendo 15 mais crocante;
+
+**Fracture**: o ângulo, em graus, pelo qual a massa pode ser dobrada lentamente antes de se romper;
+
+**Hardness**: uma ponta afiada é usada para medir a quantidade de força necessária antes que ocorra a quebra.
+
+--------------------------------------------------------------------------------
+
+## (a) Faça uma análise de componentes principais (ACP). Escreva cada CP como função das variáveis originais. Tente interpretar cada componente que você vai reter. Faça os gráficos apropriados.
+
+--------------------------------------------------------------------------------
+
+Inicialmente, vamos analisar a correlação entre as variáveis do modelo:
+
+```{r}
+# criando a correlação entre as variáveis
+correlacao <- cor(food_texture[,2:6], method = "pearson")
+# paleta de cores pasteis para usar no gráfico de correlação
+col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA"))
+# produzindo um gráfico para visualização
+corrplot(correlacao, method = "color",
+type = "upper", col = col(200),
+addCoef.col = "black",
+tl.col="black", tl.srt=45)
+```
+
+No correlograma, destacam-se os seguintes pontos:
+
+- **Crispy** e **Fracture** são altamente correlacionados negativamente (-0.84);
+
+- **Hardness** tem pouca correlação com as outras variáveis (menor que 0.5, em termos absolutos, com todas as outras), e, em especial, com **Oil** (-0.1);
+
+- **Oil** e **Density** são altamente correlacionados negativamente (-0.75).
+
+É preciso padronizar esses dados? Vamos avaliar com um *bloxplot*
+
+```{r}
+boxplot(food_texture[,2:6])
+```
+
+Como a distribuições de valores das variáveis tem disperções distintas, vamos padronizar cada variável para facilitar a interpretação dos coeficientes.
+
+Vamos prosseguir com a análise de componentes principais:
+
+```{r}
+food_texture_acp <- prcomp(
+  food_texture[,2:6],
+  center = TRUE,
+  scale. = TRUE)
+food_texture_acp
+summary(food_texture_acp)
+screeplot(food_texture_acp, type = "lines")
+```
+
+Os resultados mostram 5 componentes principais. Algumas características desses componentes podem ser destacados, como o peso de **Hardness** em PC2.
+
+Analisando a variância explicada por cada um dos componentes, temos que o primeiro componente explica cerca de 60% da variância dsa variáveis em análise; já o segundo explica cerca de 26%. Conjuntamente, os dois explicam cerca de 86% da variância dos dados. Junto com o screeplot, temos que os dois primeiros componentes são suficientes para o modelo. 
+
+No gráfico abaixo, temos o vetores de cada variável relevante dentro do espaço dos componentes. Podemos ver que **Hardness**
+
+```{r}
+library(ggfortify)
+# gráfico com os autovetores e os componentes principais.
+autoplot(food_texture_acp, data = food_texture,
+loadings = TRUE, loadings.label = TRUE,
+scale = 0
+)
+```
+
+Interpretando os componentes:
+
+1. O primeiro componente possui cargas positivas para **Oil** e para **Cripsy** e negativas para **Density** e **Fracture**. Assim, podemos interpretar o primeiro componente como um componente de crocância e leveza.
+
+2. O segundo componente possui uma carga positiva com alto valor para **Hardness**, e uma carga positiva para **Density**. Aqui, então, temos que o segundo componente pode ser interpretado como um componente de robustez e dureza.
+
+
+--------------------------------------------------------------------------------
+
+## (b) Faça uma análise fatorial (AF) com dois fatores. Para isso, considere AF em três situações: sem rotação, com rotação varimax e com rotação promax.
+
+--------------------------------------------------------------------------------
+
+Análise fatorial com dois fatores sem rotação: 
+```{r}
+food_texture_af_sem_rotacao <- fa(
+ food_texture[,2:6],
+ nfactors=2, 
+ rotate="none"
+)
+
+
+summary(food_texture_af_sem_rotacao)
+food_texture_af_sem_rotacao$loadings
+food_texture_af_sem_rotacao$communality
+```
+
+Análise fatorial com dois fatores, com rotação Varimax
+
+```{r}
+food_texture_af_varimax <- fa(
+ food_texture[,2:6],
+ nfactors=2, 
+ rotate="varimax"
+)
+
+summary(food_texture_af_varimax)
+food_texture_af_varimax$loadings
+food_texture_af_varimax$communality
+```
+
+Análise fatorial com dois fatores, com rotação Promax
+
+
+```{r}
+food_texture_af_promax <- fa(
+ food_texture[,2:6],
+ nfactors=2, 
+ rotate="promax"
+)
+summary(food_texture_af_promax)
+food_texture_af_promax$loadings
+food_texture_af_promax$communality
+
+# food_texture_af_promax$scores
+```
+
+--------------------------------------------------------------------------------
+
+## (c) Faça os gráficos apropriados e comente sobre qual rotação é mais apropriada para melhor interpretar os fatores.
+
+--------------------------------------------------------------------------------
+
+```{r}
+# carregando bibliotecas de plots
+library(ggplot2)
+library(ggrepel)
+
+```
+
+Gráfico de AF sem rotação:
+
+```{r}
+
+# Convertenedo a tabela scores em um data frame
+scores_df <- as.data.frame(food_texture_af_sem_rotacao$scores)
+# Convertenedo a tabela scores em um data frame
+
+loadings_df <-  data.frame(matrix(
+  as.numeric(food_texture_af_sem_rotacao$l), 
+  attributes(food_texture_af_sem_rotacao$l)$dim, 
+  dimnames=attributes(food_texture_af_sem_rotacao$l)$dimnames))
+
+
+# Definir o tema do gráfico
+theme_set(theme_minimal())
+
+# Criar o gráfico de dispersão
+food_texture_af_sem_rotacao_plot <- ggplot(scores_df, aes(x = MR1, y = MR2)) +
+  geom_point() +
+  geom_segment(
+    aes(x = 0, y = 0, xend = MR1, yend = MR2),
+    data = loadings_df, 
+    arrow = arrow(length = unit(0.3, "cm")), 
+    color = "blue") +
+  geom_label_repel(aes(label = rownames(loadings_df)),
+                   data = loadings_df, color = "blue")
+food_texture_af_sem_rotacao_plot
+
+```
+
+Gráfico de AF com rotação **Varimax**:
+
+```{r}
+# Convertenedo a tabela scores em um data frame
+scores_df <- as.data.frame(food_texture_af_varimax$scores)
+# Convertenedo a tabela scores em um data frame
+
+loadings_df <-  data.frame(matrix(
+  as.numeric(food_texture_af_varimax$l), 
+  attributes(food_texture_af_varimax$l)$dim, 
+  dimnames=attributes(food_texture_af_varimax$l)$dimnames))
+
+
+# Definir o tema do gráfico
+theme_set(theme_minimal())
+
+# Criar o gráfico de dispersão
+food_texture_af_varimax_plot <- ggplot(scores_df, aes(x = MR1, y = MR2)) +
+  geom_point() +
+  geom_segment(
+    aes(x = 0, y = 0, xend = MR1, yend = MR2),
+    data = loadings_df, 
+    arrow = arrow(length = unit(0.3, "cm")), 
+    color = "red") +
+  geom_label_repel(aes(label = rownames(loadings_df)),
+                   data = loadings_df, color = "red")
+food_texture_af_varimax_plot
+```
+
+
+Gráfico de AF com rotação **Promax**:
+
+```{r}
+# Convertenedo a tabela scores em um data frame
+scores_df <- as.data.frame(food_texture_af_promax$scores)
+# Convertenedo a tabela scores em um data frame
+
+loadings_df <-  data.frame(matrix(
+  as.numeric(food_texture_af_promax$l), 
+  attributes(food_texture_af_promax$l)$dim, 
+  dimnames=attributes(food_texture_af_promax$l)$dimnames))
+
+
+# Definir o tema do gráfico
+theme_set(theme_minimal())
+
+# Criar o gráfico de dispersão
+food_texture_af_promax_plot <- ggplot(scores_df, aes(x = MR1, y = MR2)) +
+  geom_point() +
+  geom_segment(
+    aes(x = 0, y = 0, xend = MR1, yend = MR2),
+    data = loadings_df, 
+    arrow = arrow(length = unit(0.3, "cm")), 
+    color = "green") +
+  geom_label_repel(aes(label = rownames(loadings_df)),
+                   data = loadings_df, color = "green")
+food_texture_af_promax_plot
+```
+
+A interpetação mais apropriada para melhor interpretar os fatores é a rotação **Varimax**. 
+
+--------------------------------------------------------------------------------
+
+## (d) Faça uma análise de componentes independentes (ACI). Escreva cada CI como função das variáveis originais. Tente interpretar cada componente que você vai reter.
+
+
+--------------------------------------------------------------------------------
+ 
+```{r}
+# carregando as bibliotecas 
+
+library(fastICA)
+library(ica)
+```
+
+Para realizar a ACI, vamos usar o pacote do R fastICA, com dois fatores, como indicado no item anterior.
+
+```{r}
+
+# realizando a ACI
+food_texture_ica_fast <- fastICA(food_texture[,2:6], 2) 
+```
+Relembrando a teoria:
+A matriz de dados X é considerada ser a combinação linear de componentes não-gaussianos independentes. Isto é, 
+
+$$ X = SA$$
+onde S contém os componentes independentes e A é uma matrix de "mistura".
+Para obter S,é necessário "desmisturar" os dados (X), estimando uma matriz W, onde $$S = XW$$
+
+O algoritmo de fast ICA estima W tal que $$XKW = S$$
+
+
+
+Temos que a matriz A de mistura é:
+```{r}
+food_texture_ica_fast$A
+```
+```{r}
+
+```
+
+A matriz S de componentes independetes, por sua vez, é:
+
+
+```{r}
+food_texture_ica_fast$S
+```
+
+A matriz W é dada por:
+
+```{r}
+food_texture_ica_fast$W
+
+```
+
+Por fim, a matriz K é dada por :
+
+```{r}
+food_texture_ica_fast$K
+```
+Vamos calcluar KW:
+
+```{r}
+food_texture_ica_fast_KW <- food_texture_ica_fast$K %*% food_texture_ica_fast$W
+food_texture_ica_fast_KW
+```
+
+Com a matriz KW, podemos criar a equação de componentens independentes em função de X
+Isto é, 
+
+$$ S_1 = `r paste(food_texture_ica_fast_KW[1,1])`X_1  + `r paste(food_texture_ica_fast_KW[2,1])`X_2 +`r paste(food_texture_ica_fast_KW[3,1])`X_3 + `r paste(food_texture_ica_fast_KW[4,1])`X_4  + `r paste(food_texture_ica_fast_KW[5,1])`X_5$$
+
+e
+
+$$ S_2 = `r paste(food_texture_ica_fast_KW[1,2])`X_1  + `r paste(food_texture_ica_fast_KW[2,2])`X_2 +`r paste(food_texture_ica_fast_KW[3,2])`X_3 + `r paste(food_texture_ica_fast_KW[4,2])`X_4  + `r paste(food_texture_ica_fast_KW[5,2])`X_5$$
+
+onde cada $X_i$ é referente as variáveis de **food-texture** e cada $S_j$ é referente ao componente independente.
+
+
+Abaixo, podemos observar os gráficos dos dados pré-processados; dos componentes principais (que podem ser obitida pela matriz pré-branquamento (pre-whitening matrix), que projeta a matriz de pré-processados nos componentes principais); e por fim, um gráfico dos componentes independentes.
+
+
+```{r}
+plot(food_texture_ica_fast$X, main = "Dados pré-processados")
+plot(food_texture_ica_fast$X %*% food_texture_ica_fast$K, main = "Componentes do PCA")
+plot(food_texture_ica_fast$S, main = "Compontentes do ICA")
+```
+
+Analisando a tabela KW e as equações de S em função de X, podemos ver as cargas para cada uma das colunas de X, e interpretar cada um dos dois componentes independentes.
+No caso do primeiro componente, as cargas relativas a dureza e densidade tem maior número absoluto, e são positivas. As cargas relativas a óleo e a fratura são negativas, e a relativa a crocâcnia é positiva, mas seus valores são relativamente menores.
+Para o segundo componente, as cargas relativas a dureza e desindade tem maior número absoluto, mas dureza tem valor negativo. As cargas relativas a óleo e a crocância são negativas, e a relativa a fatura é positiva, e, analogamente ao primeiro componente, seus valores são relativamente menores.
+
+Em suma, o primeiro componente está relacionada com dureza, crocância e o negativo de fratura, em contrapondo com o segundo componente, que está relacionado com o negativo de dureza e crocância, e posititvamente com fratura. Podemos interpretar o primeiro componente como um componente de dureza e crocância e o segundo como um componente de moleza e não crocância. 
+
+
+--------------------------------------------------------------------------------
+
